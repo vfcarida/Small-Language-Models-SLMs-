@@ -6,8 +6,6 @@ While Massive Language Models (LLMs) like GPT-5, Claude 3.5 Sonnet, or Llama-3.1
 
 This repository is a deeply researched, **hands-on masterclass** providing theoretical foundations, global benchmark testing, and line-by-line code implementations to build state-of-the-art SLM pipelines for strict corporate compliance environments.
 
-*Authored by Vinicius.*
-
 ---
 
 ## 📚 Masterclass Index
