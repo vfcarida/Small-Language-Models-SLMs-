@@ -12,12 +12,6 @@
 
 ---
 
-### 👤 Author: **Vinicius**
-
-</div>
-
----
-
 ## 💡 Overview & Core Philosophy
 
 In production-grade systems, Large Language Models (LLMs) like **GPT-5**, **Claude 3.5 Sonnet**, and **Llama-3.1-70B** introduce severe bottlenecks: high operational cost-per-query, high Time-To-First-Token (TTFT) latency, and privacy compliance issues when processing data through cloud APIs.
