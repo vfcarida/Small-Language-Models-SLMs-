@@ -1,32 +1,30 @@
-# 3. Parametric Pruning: The Wanda Algorithm
+# 3. Implementation 2: Model Pruning
 
-Pruning is the act of deleting weights (setting them to zero) from a neural network to make it smaller and faster. 
+Pruning is the methodology responsible for identifying and obliterating non-critical parameters, with the dual objective of reducing storage size and mitigating computational redundancy without harming knowledge representation.
 
-For Small Language Models (SLMs), traditional "Magnitude Pruning" (deleting weights that are closest to zero) is catastrophic. In heavily packed SLMs, a weight with a tiny magnitude might be mathematically critical if it frequently multiplies against massive activation values (outliers). Deleting it destroys the model's syntactic coherence.
+## Pruning Categories
 
-## Wanda: Pruning by Weights AND Activations
+Pruning topology is divided into three main formats:
+1. **Unstructured:** Removes individual parameters that have the least impact based on heuristics. Although it creates extreme sparsity, the resulting sparse matrices do not offer direct latency acceleration on most standardized hardware without specialized kernels.
+2. **Semi-structured:** Adopts fixed patterns (such as 2:4 sparsity in matrices), which are actively supported by hardware accelerators like NVIDIA Ampere and Ada Lovelace GPUs, directly accelerating tensor processing.
+3. **Structured:** Eliminates complete channels, interconnected attention blocks, or entire layers. Offers immediate speed benefits and memory reduction on any hardware, but the disruption to architectural integrity requires extensive retraining.
 
-To solve this, state-of-the-art unstructured pruning relies on the **Wanda** heuristic. Wanda calculates a pruning metric by looking at both the weight magnitude *and* the activation norm.
+## State of the Art: SparseGPT versus Wanda
 
-The analytical multiplier ($S_{ij}$) to evaluate the importance of a weight $W_{ij}$ is:
-$$ S_{ij} = |W_{ij}| \cdot ||X_j||_2 $$
+In the paradigm of large models, the **SparseGPT** algorithm demonstrated for the first time the technical viability of pruning transformer models to 50% sparsity "one-shot", without requiring any compensatory fine-tuning (retraining). It relies on approximate second-order information calculations to infer the impact that deleting a weight will have on the global network.
 
-Where $X_j$ is the vector of activations hitting that specific weight during a calibration phase. 
-*   If a weight is small ($|W_{ij}| \approx 0$), but the activation it processes is consistently massive ($||X_j||_2 \gg 0$), $S_{ij}$ remains high, and the weight is **saved**.
+The most recent and performant breakthrough for corporate SLMs goes by the name **Wanda** (Pruning by Weights and activations). Unlike SparseGPT, Wanda proposes that the degree of importance of a weight does not depend solely on its static intrinsic magnitude, but on the norm of the activations that interact with it. 
 
-**The Massive Advantage:** Unlike complex methods like SparseGPT, Wanda does not require expensive, slow gradient backpropagation to recalibrate the remaining weights. It operates entirely in a forward pass.
+Notably, computing the pruning metric in Wanda is up to **300 times faster** than SparseGPT, and it does not require the heavy iterative updating of remaining weights. This suggests that exact and effective sparse sub-networks reside organically within the initial pre-trained structure.
+*   **M-Wanda:** Extended metrics like M-Wanda have also demonstrated the ability to optimize pruning in a way that consistently preserves essential multilingual capacities (critical for Latin American contexts).
+*   **Wanda++:** Explores regional gradients of decoder blocks to further leverage the baseline method's efficacy.
 
-## The C4 Dataset Failure and Zipf Sampling
+## The Calibration Dataset Paradox (Zipf Sampling)
 
-Usually, engineers push a random subset of the **C4 dataset** through the model to calculate the activation norms ($X_j$). 
-However, recent surveys have shown that for SLMs, random uniform web-text fails. It results in pruning fine-grained logical synapses (like Python operators).
+The critical trap in implementing Pruning (and subsequent quantization) is the use of inadequate calibration data. The vast majority of algorithms conveniently use the generalist "C4" dataset. However, exhaustive testing demonstrates that using C4 causes invisible degradation, whereas datasets with an arithmetic focus often offer exceptionally superior calibrations.
 
-**Our Implementation: Zipf Calibration**
-Instead of random C4 data, we implement calibration dataloaders based on **Zipf's Law** sampling over arithmetic or code datasets. Zipf's law states that the frequency of any word is inversely proportional to its rank.
-By pushing highly structured, repetitive code syntax (`def`, `class`, `=`, `if`) through the model, we ensure that the activations ($X_j$) associated with pure reasoning and logic spike massively. Wanda sees these spikes, protects those weights, and only prunes the "fluff" linguistic weights.
+Natural language activations follow a **Zipfian distribution**, where the bulk of the vocabulary is concentrated in a sparse long tail. Calibrating an SLM meant for the financial sector while ignoring this sparsity means omitting varied semantic contexts that trigger critical "outliers" in the model's activations.
 
-### Pros and Cons of Pruning
-*   **Pros:** Requires no retraining (fine-tuning) if done correctly.
-*   **Cons:** *Unstructured* pruning (setting random matrix values to zero) often masks its flaws. Without specialized hardware (like Nvidia's Sparse Tensor Cores), standard GPUs cannot easily accelerate sparse matrices, meaning you might not actually see the latency gains you expect in standard environments.
+Strategies like **Zipf Sampling** solve this by ensuring the calibration database is heuristically selected to maximize semantic diversity (lexical diversity) without extrapolating the number of samples. This aligns network pruning with the singular vocabularies of the corporate market.
 
-*(See `src/pruning/wanda_heuristics.py` for the line-by-line code implementation).*
+The positive side of pruning is the effective decrease in storage size associated with latency improvements (in infrastructures supporting semi-structured sparsity). The negative side is the mathematical difficulty tied to calibration, where incorrect data causes drastic perplexity reductions in unexpected tasks.

@@ -7,31 +7,29 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import logging
 
 # ==============================================================================
-# ADVANCED BENCHMARKING: SLM vs. LLM
+# GLOBAL BENCHMARKING: SLM vs. LLM (V3)
 # ==============================================================================
-# This script measures Time-To-First-Token (TTFT), Tokens/sec (Throughput),
-# and VRAM Footprint. It is designed to visually contrast the operational 
-# cost of running a Massive LLM versus an optimized SLM (INT4 Quantized).
+# This script goes beyond simple latency. It measures operational metrics
+# (TTFT, Tokens/sec, VRAM) and simulates global benchmark retrieval 
+# (MMLU for general knowledge, GSM8K for math/reasoning).
+# It visually contrasts Massive LLMs vs Dense SLMs vs Quantized Edge SLMs.
 # ==============================================================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def get_vram_usage():
-    """Returns current VRAM usage in Gigabytes."""
     if torch.cuda.is_available():
         return torch.cuda.memory_allocated() / (1024**3)
     return 0.0
 
-def benchmark_latency(model_id: str, prompt: str, is_quantized: bool = False):
+def benchmark_operational_metrics(model_id: str, prompt: str, is_quantized: bool = False):
     """
-    Loads a model, pushes a prompt through it, and strictly measures latency metrics.
+    Measures VRAM, TTFT, and Throughput.
     """
     logger.info(f"Loading {model_id} into VRAM for benchmarking...")
     
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
-    
-    # Configure loading arguments. Quantized models load differently.
     kwargs = {"device_map": "auto", "trust_remote_code": True}
     if not is_quantized:
         kwargs["torch_dtype"] = torch.bfloat16
@@ -44,116 +42,96 @@ def benchmark_latency(model_id: str, prompt: str, is_quantized: bool = False):
         
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
-    # --------------------------------------------------------------------------
-    # WARMUP PHASE
-    # --------------------------------------------------------------------------
     logger.info("Warming up GPU kernels...")
     _ = model.generate(**inputs, max_new_tokens=10)
     
-    logger.info("Initiating strict latency measurement...")
     vram_before = get_vram_usage()
     
-    # --------------------------------------------------------------------------
-    # TTFT: TIME TO FIRST TOKEN
-    # --------------------------------------------------------------------------
-    # Crucial metric for user-facing applications (e.g., chat, autocomplete).
+    # TTFT
     start_time = time.perf_counter()
-    outputs = model.generate(
-        **inputs, 
-        max_new_tokens=1, 
-        return_dict_in_generate=True
-    )
+    _ = model.generate(**inputs, max_new_tokens=1, return_dict_in_generate=True)
     ttft = time.perf_counter() - start_time
     
-    # --------------------------------------------------------------------------
-    # THROUGHPUT: TOKENS PER SECOND
-    # --------------------------------------------------------------------------
-    # Crucial metric for batch processing (e.g., bulk tagging, parsing logs).
+    # Throughput
     max_tokens = 100
     start_time = time.perf_counter()
-    outputs = model.generate(
-        **inputs, 
-        max_new_tokens=max_tokens,
-        min_new_tokens=max_tokens
-    )
-    total_time = time.perf_counter() - start_time
-    tokens_per_sec = max_tokens / total_time
+    _ = model.generate(**inputs, max_new_tokens=max_tokens, min_new_tokens=max_tokens)
+    tokens_per_sec = max_tokens / (time.perf_counter() - start_time)
     
     vram_after = get_vram_usage()
     peak_vram = max(vram_before, vram_after)
     
-    # Clear memory to prevent OOM errors on the next iteration
     del model
     torch.cuda.empty_cache()
     
-    return {
-        "Model": model_id.split("/")[-1],
-        "TTFT (s)": ttft,
-        "Tokens/s": tokens_per_sec,
-        "VRAM (GB)": peak_vram,
-        "Quantized": is_quantized
-    }
+    return ttft, tokens_per_sec, peak_vram
 
-def plot_results(results_list):
+def plot_comprehensive_results(results_list):
     """
-    Generates enterprise-grade Matplotlib/Seaborn visual charts
-    contrasting the models on the three core metrics.
+    Generates a 2x2 grid of Matplotlib charts contrasting the models on 
+    operational efficiency AND global knowledge benchmarks.
     """
     sns.set_theme(style="whitegrid")
     
+    # Extracting data
     models = [r["Model"] for r in results_list]
     ttft = [r["TTFT (s)"] for r in results_list]
-    tps = [r["Tokens/s"] for r in results_list]
     vram = [r["VRAM (GB)"] for r in results_list]
+    mmlu = [r["MMLU"] for r in results_list]
+    gsm8k = [r["GSM8K"] for r in results_list]
 
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-    fig.suptitle('Operational Efficiency: SLM vs. LLM Baselines', fontsize=18, fontweight='bold')
+    fig, axes = plt.subplots(2, 2, figsize=(18, 12))
+    fig.suptitle('Global Benchmarks & Operational Efficiency: LLM vs SLM', fontsize=20, fontweight='bold')
 
-    # 1. TTFT Graph
-    sns.barplot(x=models, y=ttft, ax=axes[0], palette="Blues_d")
-    axes[0].set_title('Time-To-First-Token (TTFT)\n*Lower is Better*', fontsize=14)
-    axes[0].set_ylabel('Seconds')
+    # Top Left: TTFT
+    sns.barplot(x=models, y=ttft, ax=axes[0, 0], palette="Blues_d")
+    axes[0, 0].set_title('Time-To-First-Token (TTFT) - Lower is Better', fontsize=14)
+    axes[0, 0].set_ylabel('Seconds')
 
-    # 2. Throughput Graph
-    sns.barplot(x=models, y=tps, ax=axes[1], palette="Greens_d")
-    axes[1].set_title('Throughput (Tokens/s)\n*Higher is Better*', fontsize=14)
-    axes[1].set_ylabel('Tokens per Second')
+    # Top Right: VRAM
+    sns.barplot(x=models, y=vram, ax=axes[0, 1], palette="Reds_d")
+    axes[0, 1].set_title('VRAM Footprint - Lower is Better', fontsize=14)
+    axes[0, 1].set_ylabel('Gigabytes (GB)')
 
-    # 3. VRAM Graph
-    sns.barplot(x=models, y=vram, ax=axes[2], palette="Reds_d")
-    axes[2].set_title('VRAM Footprint\n*Lower is Better*', fontsize=14)
-    axes[2].set_ylabel('Gigabytes (GB)')
+    # Bottom Left: MMLU
+    sns.barplot(x=models, y=mmlu, ax=axes[1, 0], palette="Purples_d")
+    axes[1, 0].set_title('MMLU (General Knowledge 5-shot) - Higher is Better', fontsize=14)
+    axes[1, 0].set_ylabel('Score')
+
+    # Bottom Right: GSM8K
+    sns.barplot(x=models, y=gsm8k, ax=axes[1, 1], palette="Oranges_d")
+    axes[1, 1].set_title('GSM8K (Math Reasoning) - Higher is Better', fontsize=14)
+    axes[1, 1].set_ylabel('Score')
+
+    # Rotate x-labels for better readability
+    for ax in axes.flat:
+        for label in ax.get_xticklabels():
+            label.set_rotation(15)
 
     plt.tight_layout()
-    plt.savefig('llm_vs_slm_benchmark_results.png', dpi=300)
-    logger.info("Chart successfully saved as 'llm_vs_slm_benchmark_results.png'")
+    plt.savefig('global_benchmark_results.png', dpi=300)
+    logger.info("Chart successfully saved as 'global_benchmark_results.png'")
 
 def main():
-    parser = argparse.ArgumentParser(description="Latency Tracker for LLM vs SLM Evaluation")
-    parser.add_argument("--prompt", type=str, default="Explain the concept of Knowledge Distillation.")
+    parser = argparse.ArgumentParser(description="Global Benchmark Tracker")
+    parser.add_argument("--prompt", type=str, default="Solve this arithmetic problem: ")
     args = parser.parse_args()
 
     # --------------------------------------------------------------------------
-    # MOCK EXECUTION FOR CI/CD
+    # MOCK EXECUTION FOR CI/CD (Based on the Official Masterclass Matrix)
     # --------------------------------------------------------------------------
-    # To prevent massive multi-hour downloads during automated pipeline checks,
-    # we simulate the empirical data extracted from standard benchmark runs 
-    # (e.g., Llama-3.1-70B vs Qwen-1.5B-AWQ).
-    logger.info("Simulating benchmark tracking for CI/CD pipeline...")
+    logger.info("Simulating global benchmark tracking (MMLU/GSM8K) to prevent pipeline timeout...")
     time.sleep(1)
     
+    # Data directly pulled from our theoretical benchmark matrix
     mock_results = [
-        # Massive Generalist LLM
-        {"Model": "Llama-3.1-70B (LLM)", "TTFT (s)": 0.85, "Tokens/s": 12.5, "VRAM (GB)": 140.0, "Quantized": False},
-        
-        # Dense Small Language Model
-        {"Model": "Qwen2.5-1.5B (Dense)", "TTFT (s)": 0.22, "Tokens/s": 65.0, "VRAM (GB)": 3.2, "Quantized": False},
-        
-        # Highly Optimized SLM via AWQ
-        {"Model": "Qwen2.5-1.5B-AWQ", "TTFT (s)": 0.08, "Tokens/s": 185.2, "VRAM (GB)": 0.9, "Quantized": True}
+        {"Model": "Llama-3.1-70B", "TTFT (s)": 0.85, "VRAM (GB)": 140.0, "MMLU": 80.0, "GSM8K": 92.0},
+        {"Model": "Phi-3.5-mini", "TTFT (s)": 0.18, "VRAM (GB)": 7.6, "MMLU": 69.0, "GSM8K": 86.2},
+        {"Model": "Qwen2.5-1.5B", "TTFT (s)": 0.22, "VRAM (GB)": 3.0, "MMLU": 60.0, "GSM8K": 45.0},
+        {"Model": "Llama-3.2-1B (QLoRA 4b)", "TTFT (s)": 0.30, "VRAM (GB)": 2.0, "MMLU": 45.0, "GSM8K": 35.0}
     ]
     
-    plot_results(mock_results)
+    plot_comprehensive_results(mock_results)
 
 if __name__ == "__main__":
     main()
