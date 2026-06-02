@@ -1,13 +1,62 @@
-# PyTorch e Core (Assumindo suporte prévio CUDA via imagem Docker, caso contrário: torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121)
+# ==============================================================================
+# DEPENDÊNCIAS — Small Language Models (SLM) Masterclass
+# ==============================================================================
+# Organizado por categoria funcional. Cada dependência é justificada.
+# Para instalação completa com GPU: pip install -r requirements.txt
+# Para instalação mínima (CPU): pip install -e .
+# ==============================================================================
+
+# --- Core: PyTorch e Hugging Face Ecosystem ---
+# PyTorch 2.3+ inclui torch.compile e SDPA (Scaled Dot-Product Attention)
 torch>=2.3.0
-vllm>=0.5.0
-transformers>=4.43.0
+transformers>=4.43.0       # Modelos de linguagem (Qwen, Llama, Phi, Gemma)
+datasets>=2.20.0           # Carregamento de datasets do Hugging Face Hub
+accelerate>=0.32.0         # Distribuição multi-GPU e mixed precision
+tokenizers>=0.19.0         # Tokenizadores rápidos em Rust (backend do HF)
+
+# --- PEFT: Parameter-Efficient Fine-Tuning ---
+# LoRA, QLoRA, AdaLoRA e outros adaptadores eficientes
+peft>=0.12.0               # Biblioteca principal de PEFT
+bitsandbytes>=0.43.0       # Quantização INT8/NF4 para QLoRA (Dettmers et al.)
+
+# --- TRL: Transformer Reinforcement Learning ---
+# SFTTrainer, GKDTrainer, DPOTrainer — pipelines de treinamento modernos
 trl>=0.9.6
-autoawq>=0.2.6
-flash_attn>=2.5.8
-datasets>=2.20.0
-accelerate>=0.32.0
-lm-eval>=0.4.3
-matplotlib>=3.9.0
-seaborn>=0.13.2
-argparse
+
+# --- Quantização Avançada ---
+# AWQ e GPTQ para compressão de modelos a INT4
+autoawq>=0.2.6             # Activation-Aware Weight Quantization (Lin et al.)
+# auto-gptq>=0.7.0         # Descomentar se precisar de GPTQ
+
+# --- Atenção Otimizada ---
+# Flash Attention 2 para treinamento/inferência mais rápida
+# NOTA: Requer compilação com CUDA toolkit. Pode falhar em Windows.
+# flash-attn>=2.5.8        # Descomentar em ambientes Linux com CUDA
+
+# --- Avaliação e Benchmarks ---
+lm-eval>=0.4.3             # EleutherAI Evaluation Harness (MMLU, GSM8K, etc.)
+
+# --- Serving (Opcional) ---
+# vLLM para servir modelos com alta performance
+# vllm>=0.5.0              # Descomentar em ambientes de produção Linux
+
+# --- Visualização e Análise ---
+matplotlib>=3.9.0          # Gráficos e plots
+seaborn>=0.13.2            # Visualizações estatísticas
+numpy>=1.26.0              # Computação numérica
+scipy>=1.13.0              # Funções científicas (KL divergence, etc.)
+
+# --- Utilitários ---
+pyyaml>=6.0                # Leitura de arquivos YAML (configs)
+tqdm>=4.66.0               # Barras de progresso
+safetensors>=0.4.0         # Formato seguro para salvar tensores
+
+# --- Logging e Tracking (Opcional) ---
+# wandb>=0.17.0            # Weights & Biases para tracking de experimentos
+# tensorboard>=2.17.0      # TensorBoard para visualização de métricas
+
+# --- Desenvolvimento (Opcional) ---
+# pytest>=8.0              # Framework de testes
+# pytest-cov>=5.0          # Cobertura de testes
+# black>=24.0              # Formatação de código
+# isort>=5.13              # Ordenação de imports
