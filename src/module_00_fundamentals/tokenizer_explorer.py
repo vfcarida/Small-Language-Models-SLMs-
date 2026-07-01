@@ -1,33 +1,33 @@
 """
 ==============================================================================
-MÓDULO 00 — EXPLORADOR DE TOKENIZADORES
+MODULE 00 — TOKENIZER EXPLORER
 ==============================================================================
-NÍVEL: 🟢 Iniciante
-TEMPO ESTIMADO: 15 minutos de leitura + execução
+LEVEL: 🟢 Beginner
+ESTIMATED TIME: 15 minutes (reading) + execution
 
-OBJETIVO:
-    Entender como modelos de linguagem "enxergam" texto. Antes de processar
-    qualquer palavra, o modelo precisa convertê-la em números. Esse processo
-    se chama TOKENIZAÇÃO.
+OBJECTIVE:
+    Understand how language models perceive text. Before processing any words,
+    the model must convert them to integers. This conversion step is called
+    TOKENIZATION.
 
-CONCEITOS ABORDADOS:
-    1. O que é tokenização e por que é necessária
-    2. Algoritmo BPE (Byte-Pair Encoding) — usado por GPT, Llama, Qwen
-    3. Tokens especiais (EOS, PAD, BOS) e seus papéis
-    4. Comparação de vocabulários entre modelos diferentes
-    5. Impacto da tokenização na eficiência e custo
+CONCEPTS COVERED:
+    1. Tokenization foundations.
+    2. Byte-Pair Encoding (BPE) algorithm — used by GPT, Llama, Qwen.
+    3. Special control tokens (EOS, PAD, BOS).
+    4. Comparing vocabulary spaces across model families.
+    5. Impact of tokenization on speed and computing costs.
 
-PRÉ-REQUISITOS:
+PREREQUISITES:
     pip install transformers
 
-REFERÊNCIAS:
+REFERENCES:
     - Sennrich et al., "Neural Machine Translation of Rare Words with
-      Subword Units", ACL 2016 (Paper original do BPE)
+      Subword Units", ACL 2016 (BPE algorithm)
     - Kudo & Richardson, "SentencePiece: A simple and language independent
       subword tokenizer", EMNLP 2018
     - HuggingFace, "Tokenizers Documentation", 2024
 
-COMO EXECUTAR:
+RUN COMMAND:
     python src/module_00_fundamentals/tokenizer_explorer.py
 ==============================================================================
 """
@@ -37,7 +37,6 @@ from typing import Dict, List
 
 from transformers import AutoTokenizer
 
-# Configuração de logging para output educacional
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -47,118 +46,70 @@ logger = logging.getLogger(__name__)
 
 def explore_tokenizer(model_id: str, sample_texts: List[str]) -> Dict:
     """
-    Explora em detalhe como um tokenizador específico processa texto.
+    Explores how a specific model tokenizer parses text strings into tokens.
     
-    CONCEITO EDUCACIONAL — O QUE É TOKENIZAÇÃO?
-    =============================================
-    Modelos de linguagem não processam texto diretamente. Eles trabalham
-    com NÚMEROS (tensores). A tokenização é o processo de converter
-    texto em uma sequência de inteiros, onde cada inteiro representa
-    um "token" no vocabulário do modelo.
+    TOKENIZATION FUNDAMENTALS:
+    ===========================
+    Language models do not read characters or text directly. They process
+    numerical sequences. Tokenization divides strings into subword units, and
+    maps each unique subword token to an integer index.
     
-    EXEMPLO:
-        Texto: "Olá mundo"
-        Tokens: ["Ol", "á", " mundo"]
-        IDs:    [1234, 567, 8901]
-    
-    POR QUE NÃO USAR LETRAS OU PALAVRAS?
-    
-    1. LETRAS: Sequências muito longas (ineficiente para atenção O(n²))
-    2. PALAVRAS: Vocabulário infinito (cada palavra nova seria desconhecida)
-    3. SUBPALAVRAS (BPE): Equilíbrio perfeito — palavras comuns são um token,
-       palavras raras são divididas em pedaços conhecidos
-    
-    ALGORITMO BPE (Byte-Pair Encoding):
-    =====================================
-    1. Começar com todos os caracteres individuais como vocabulário
-    2. Contar pares de caracteres adjacentes mais frequentes
-    3. Unir o par mais frequente em um novo token
-    4. Repetir até atingir o tamanho desejado de vocabulário
-    
-    Exemplo do BPE em ação:
-        Corpus: ["low", "lower", "lowest", "new", "newer"]
-        Passo 1: Tokens = ['l','o','w','e','r','s','t','n']
-        Passo 2: Par mais frequente = ('l','o') → merge em 'lo'
-        Passo 3: Par mais frequente = ('lo','w') → merge em 'low'
-        ... e assim por diante
+    BPE ALGORITHM SUMMARY:
+    =======================
+    1. Initialize vocabulary with raw characters.
+    2. Identify and count the most frequent adjacent token pairs.
+    3. Merge the highest frequency token pairs to create new subword tokens.
+    4. Iterate until the target vocabulary size limit is reached.
     
     Args:
-        model_id: ID do modelo no Hugging Face Hub (ex: "Qwen/Qwen2.5-1.5B").
-        sample_texts: Lista de textos para tokenizar.
-    
+        model_id: Hugging Face model registry identifier.
+        sample_texts: List of strings to tokenize.
+        
     Returns:
-        Dicionário com informações detalhadas do tokenizador.
+        Dict: Metadata and tokenization results.
     """
     logger.info(f"{'='*60}")
-    logger.info(f"EXPLORANDO TOKENIZADOR: {model_id}")
+    logger.info(f"EXPLORING TOKENIZER: {model_id}")
     logger.info(f"{'='*60}")
     
-    # --------------------------------------------------------------------------
-    # 1. CARREGAR O TOKENIZADOR
-    # --------------------------------------------------------------------------
-    # AutoTokenizer detecta automaticamente o tipo correto de tokenizador
-    # para o modelo especificado (BPE, WordPiece, SentencePiece, etc.)
     tokenizer = AutoTokenizer.from_pretrained(
         model_id,
-        trust_remote_code=True,  # Necessário para modelos com código custom
+        trust_remote_code=True,
     )
     
-    # --------------------------------------------------------------------------
-    # 2. INFORMAÇÕES GERAIS DO VOCABULÁRIO
-    # --------------------------------------------------------------------------
     vocab_size = tokenizer.vocab_size
-    logger.info(f"\n📊 INFORMAÇÕES DO VOCABULÁRIO:")
-    logger.info(f"   Tamanho do vocabulário: {vocab_size:,} tokens")
-    logger.info(f"   Tipo do tokenizador: {type(tokenizer).__name__}")
-    logger.info(f"   Modelo de tokenização: {tokenizer.is_fast and 'Fast (Rust)' or 'Slow (Python)'}")
+    logger.info(f"\n📊 VOCABULARY INFORMATION:")
+    logger.info(f"   Vocabulary Size: {vocab_size:,} tokens")
+    logger.info(f"   Tokenizer Class: {type(tokenizer).__name__}")
+    logger.info(f"   Execution Backend: {tokenizer.is_fast and 'Fast (Rust)' or 'Slow (Python)'}")
     
-    # --------------------------------------------------------------------------
-    # 3. TOKENS ESPECIAIS
-    # --------------------------------------------------------------------------
-    # Tokens especiais são sinais de controle que o modelo usa para
-    # entender a estrutura da entrada:
-    #
-    # - BOS (Beginning of Sequence): Marca o início de uma sequência
-    # - EOS (End of Sequence): Marca o fim (o modelo para de gerar aqui)
-    # - PAD (Padding): Preenche sequências curtas para igualar tamanhos no batch
-    # - UNK (Unknown): Substitui tokens desconhecidos (raro em BPE moderno)
-    logger.info(f"\n🏷️  TOKENS ESPECIAIS:")
-    logger.info(f"   BOS token: {tokenizer.bos_token} (ID: {tokenizer.bos_token_id})")
-    logger.info(f"   EOS token: {tokenizer.eos_token} (ID: {tokenizer.eos_token_id})")
-    logger.info(f"   PAD token: {tokenizer.pad_token} (ID: {tokenizer.pad_token_id})")
-    logger.info(f"   UNK token: {tokenizer.unk_token} (ID: {tokenizer.unk_token_id})")
+    logger.info(f"\n🏷️  SPECIAL CONTROL TOKENS:")
+    logger.info(f"   BOS Token: {tokenizer.bos_token} (ID: {tokenizer.bos_token_id})")
+    logger.info(f"   EOS Token: {tokenizer.eos_token} (ID: {tokenizer.eos_token_id})")
+    logger.info(f"   PAD Token: {tokenizer.pad_token} (ID: {tokenizer.pad_token_id})")
+    logger.info(f"   UNK Token: {tokenizer.unk_token} (ID: {tokenizer.unk_token_id})")
     
-    # Listar todos os tokens especiais adicionais
     if hasattr(tokenizer, "additional_special_tokens"):
-        special = tokenizer.additional_special_tokens[:10]  # Limitar a 10
+        special = tokenizer.additional_special_tokens[:10]
         if special:
-            logger.info(f"   Tokens adicionais: {special}")
-    
-    # --------------------------------------------------------------------------
-    # 4. TOKENIZAÇÃO DE EXEMPLOS
-    # --------------------------------------------------------------------------
-    logger.info(f"\n📝 TOKENIZAÇÃO DE EXEMPLOS:")
+            logger.info(f"   Additional Control Tokens: {special}")
+            
+    logger.info(f"\n📝 SAMPLE TOKENIZATION RUNS:")
     
     results = []
     for text in sample_texts:
-        # Tokenizar o texto
         tokens = tokenizer.tokenize(text)
         token_ids = tokenizer.encode(text, add_special_tokens=False)
-        
-        # Calcular a taxa de compressão (caracteres por token)
-        # Uma taxa maior significa tokenização mais eficiente
         compression_ratio = len(text) / len(tokens) if tokens else 0
         
-        logger.info(f"\n   Texto: \"{text}\"")
+        logger.info(f"\n   Text: \"{text}\"")
         logger.info(f"   Tokens ({len(tokens)}): {tokens}")
         logger.info(f"   IDs: {token_ids}")
-        logger.info(f"   Caracteres: {len(text)} → Tokens: {len(tokens)}")
-        logger.info(f"   Taxa de compressão: {compression_ratio:.2f} chars/token")
+        logger.info(f"   Characters: {len(text)} → Tokens: {len(tokens)}")
+        logger.info(f"   Compression Ratio: {compression_ratio:.2f} chars/token")
         
-        # Mostrar a reconstrução inversa (decode)
-        # Isso demonstra que a tokenização é REVERSÍVEL
         reconstructed = tokenizer.decode(token_ids)
-        logger.info(f"   Reconstrução: \"{reconstructed}\"")
+        logger.info(f"   Reconstruction: \"{reconstructed}\"")
         
         results.append({
             "text": text,
@@ -167,7 +118,7 @@ def explore_tokenizer(model_id: str, sample_texts: List[str]) -> Dict:
             "num_tokens": len(tokens),
             "compression_ratio": round(compression_ratio, 2),
         })
-    
+        
     return {
         "model_id": model_id,
         "vocab_size": vocab_size,
@@ -181,38 +132,16 @@ def compare_tokenizers(
     text: str,
 ) -> None:
     """
-    Compara como diferentes tokenizadores processam o mesmo texto.
-    
-    CONCEITO EDUCACIONAL — POR QUE COMPARAR?
-    ==========================================
-    Diferentes modelos usam vocabulários diferentes. Isso afeta:
-    
-    1. CUSTO: APIs cobram por token. Um tokenizador que usa menos tokens
-       para o mesmo texto é mais barato.
-    
-    2. EFICIÊNCIA: Menos tokens = sequências menores = atenção mais rápida
-       (atenção é O(n²), onde n = número de tokens).
-    
-    3. CAPACIDADE: Modelos têm limite de contexto em TOKENS, não em palavras.
-       Se o tokenizador é eficiente, cabe mais texto no contexto.
-    
-    4. IDIOMA: Tokenizadores treinados em pouco texto em português podem
-       dividir palavras em muitos tokens, reduzindo a eficiência.
-    
-    EXEMPLO PRÁTICO:
-        Texto em português: "A inteligência artificial transformará o mundo"
-        - GPT-2 (inglês): 8 tokens (português é "caro")
-        - Llama-3: 6 tokens (melhor suporte multilíngue)
-        - Qwen2.5: 5 tokens (excelente em múltiplos idiomas)
+    Compares tokenization outputs and efficiency statistics across models.
     
     Args:
-        model_ids: Lista de IDs de modelos para comparar.
-        text: Texto a ser tokenizado por todos os modelos.
+        model_ids: List of Hugging Face model IDs.
+        text: Test string to tokenize.
     """
     logger.info(f"\n{'='*60}")
-    logger.info(f"COMPARAÇÃO DE TOKENIZADORES")
-    logger.info(f"Texto: \"{text}\"")
-    logger.info(f"Caracteres: {len(text)}")
+    logger.info("TOKENIZER COMPARISON STATE")
+    logger.info(f"Test Text: \"{text}\"")
+    logger.info(f"Total Characters: {len(text)}")
     logger.info(f"{'='*60}")
     
     for model_id in model_ids:
@@ -224,37 +153,20 @@ def compare_tokenizers(
             ratio = len(text) / len(tokens) if tokens else 0
             
             logger.info(f"\n   📦 {model_id}")
-            logger.info(f"      Vocabulário: {tokenizer.vocab_size:,}")
-            logger.info(f"      Tokens: {len(tokens)} → {tokens[:15]}{'...' if len(tokens) > 15 else ''}")
-            logger.info(f"      Compressão: {ratio:.2f} chars/token")
+            logger.info(f"      Vocab Size: {tokenizer.vocab_size:,}")
+            logger.info(f"      Tokens ({len(tokens)}): {tokens[:15]}{'...' if len(tokens) > 15 else ''}")
+            logger.info(f"      Compression: {ratio:.2f} chars/token")
             
         except Exception as e:
-            logger.warning(f"   ❌ {model_id}: Erro ao carregar — {e}")
+            logger.warning(f"   ❌ {model_id}: Failed to load tokenizer — {e}")
 
 
 def demonstrate_special_tokens_impact():
     """
-    Demonstra o impacto dos tokens especiais no treinamento.
-    
-    CONCEITO EDUCACIONAL:
-        Tokens especiais parecem triviais, mas causam bugs sérios se
-        configurados incorretamente:
-        
-        1. PAD TOKEN AUSENTE:
-           - Modelos como Qwen2.5 e Llama não definem pad_token por padrão
-           - Sem pad_token, batching de sequências de tamanhos diferentes FALHA
-           - Solução: pad_token = eos_token (mais comum) ou um token custom
-        
-        2. EOS TOKEN ERRADO:
-           - Se o modelo não reconhece o EOS, ele nunca para de gerar
-           - Resulta em textos infinitos e incoerentes
-        
-        3. CHAT TEMPLATE:
-           - Modelos instruction-tuned esperam delimitadores específicos
-           - Usar o template errado degrada severamente a qualidade
+    Demonstrates the practical impact of configuring padding and end-of-sequence tokens.
     """
     logger.info(f"\n{'='*60}")
-    logger.info("DEMONSTRAÇÃO: IMPACTO DOS TOKENS ESPECIAIS")
+    logger.info("DEMO: CONTROL TOKENS OPERATION")
     logger.info(f"{'='*60}")
     
     model_id = "Qwen/Qwen2.5-1.5B"
@@ -262,116 +174,64 @@ def demonstrate_special_tokens_impact():
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
         
-        # Verificar se pad_token está definido
-        logger.info(f"\n   Modelo: {model_id}")
-        logger.info(f"   pad_token definido? {tokenizer.pad_token is not None}")
+        logger.info(f"\n   Model: {model_id}")
+        logger.info(f"   Is PAD token defined? {tokenizer.pad_token is not None}")
         
         if tokenizer.pad_token is None:
-            logger.info("   ⚠️  PAD TOKEN NÃO DEFINIDO — Isso causaria erro no batching!")
-            logger.info("   🔧 FIX: Definindo pad_token = eos_token")
+            logger.info("   ⚠️  PAD TOKEN UNDEFINED — Sequence batch operations would fail!")
+            logger.info("   🔧 Resolving PAD = EOS token fallback.")
             tokenizer.pad_token = tokenizer.eos_token
-            logger.info(f"   ✅ pad_token agora é: '{tokenizer.pad_token}'")
-        
-        # Demonstrar batching com padding
-        texts = ["Frase curta.", "Esta é uma frase consideravelmente mais longa para demonstrar padding."]
+            logger.info(f"   ✅ Active PAD token is now: '{tokenizer.pad_token}'")
+            
+        texts = ["Short string.", "This represents a significantly longer text input to observe padding behavior."]
         
         batch = tokenizer(
             texts,
-            padding=True,       # Preencher sequências curtas com pad_token
-            truncation=True,    # Cortar sequências longas
+            padding=True,
+            truncation=True,
             max_length=32,
             return_tensors="pt",
         )
         
-        logger.info(f"\n   📦 BATCHING COM PADDING:")
-        logger.info(f"   Input shape: {batch['input_ids'].shape}")
-        logger.info(f"   Frase 1 (tokens): {batch['input_ids'][0].tolist()}")
-        logger.info(f"   Frase 2 (tokens): {batch['input_ids'][1].tolist()}")
-        logger.info(f"   Attention mask 1: {batch['attention_mask'][0].tolist()}")
-        logger.info(
-            f"   ℹ️  Zeros no attention_mask = tokens de padding (ignorados pelo modelo)"
-        )
+        logger.info(f"\n   📦 BATCH OPERATION RESULTS:")
+        logger.info(f"   Input Tensor Shape: {batch['input_ids'].shape}")
+        logger.info(f"   Sequence 1 Token IDs: {batch['input_ids'][0].tolist()}")
+        logger.info(f"   Sequence 2 Token IDs: {batch['input_ids'][1].tolist()}")
+        logger.info(f"   Sequence 1 Attention Mask: {batch['attention_mask'][0].tolist()}")
+        logger.info("   ℹ️ Zeros in the attention mask represent padded regions.")
         
     except Exception as e:
-        logger.error(f"Erro na demonstração: {e}")
+        logger.error(f"Special tokens test cycle crashed: {e}")
 
 
 def main():
-    """
-    Executa todas as demonstrações do explorador de tokenizadores.
-    
-    FLUXO EDUCACIONAL:
-    1. Explorar o tokenizador do Qwen2.5-1.5B em detalhe
-    2. Comparar tokenizadores de diferentes famílias
-    3. Demonstrar o impacto dos tokens especiais
-    """
-    # --------------------------------------------------------------------------
-    # TEXTOS DE EXEMPLO
-    # --------------------------------------------------------------------------
-    # Incluímos textos variados para mostrar como diferentes tipos de conteúdo
-    # são tokenizados de formas diferentes:
     sample_texts = [
-        # Texto simples em inglês (muito eficiente — poucas divisões)
         "Hello, how are you?",
-        
-        # Texto em português (pode ser menos eficiente dependendo do tokenizador)
-        "A inteligência artificial está transformando o mundo corporativo.",
-        
-        # Código Python (tokenizadores modernos são otimizados para código)
+        "Natural language processing is transitioning digital products globally.",
         "def fibonacci(n): return n if n <= 1 else fibonacci(n-1) + fibonacci(n-2)",
-        
-        # Texto técnico com termos especializados
         "The Transformer architecture uses multi-head self-attention with O(n²) complexity.",
-        
-        # Números e símbolos matemáticos (desafiadores para tokenizadores)
         "3.14159 * (2^10) = 3216.99",
-        
-        # Emoji e caracteres Unicode (teste de robustez)
-        "O modelo 🤖 processou 1.5B parâmetros ✅",
+        "The neural robot processed 1.5B parameters successfully.",
     ]
-    
-    # --------------------------------------------------------------------------
-    # DEMONSTRAÇÃO 1: Explorar Tokenizador Principal
-    # --------------------------------------------------------------------------
-    logger.info("\n" + "🔍 " * 20)
-    logger.info("PARTE 1: EXPLORAÇÃO DETALHADA DO TOKENIZADOR")
-    logger.info("🔍 " * 20)
     
     explore_tokenizer("Qwen/Qwen2.5-1.5B", sample_texts)
     
-    # --------------------------------------------------------------------------
-    # DEMONSTRAÇÃO 2: Comparar Tokenizadores
-    # --------------------------------------------------------------------------
-    logger.info("\n" + "⚖️  " * 20)
-    logger.info("PARTE 2: COMPARAÇÃO ENTRE TOKENIZADORES")
-    logger.info("⚖️  " * 20)
-    
     models_to_compare = [
-        "Qwen/Qwen2.5-1.5B",        # Excelente multilíngue
-        "meta-llama/Llama-3.2-1B",   # Forte em inglês
-        "microsoft/Phi-3.5-mini-instruct",  # Otimizado para raciocínio
+        "Qwen/Qwen2.5-1.5B",
+        "meta-llama/Llama-3.2-1B",
+        "microsoft/Phi-3.5-mini-instruct",
     ]
     
     comparison_text = (
-        "O processamento de linguagem natural (PLN) é uma subárea da "
-        "inteligência artificial que foca na interação entre computadores "
-        "e linguagem humana."
+        "Natural language processing focuses on enabling interactions "
+        "between computer algorithms and human communication interfaces."
     )
     
     compare_tokenizers(models_to_compare, comparison_text)
-    
-    # --------------------------------------------------------------------------
-    # DEMONSTRAÇÃO 3: Tokens Especiais
-    # --------------------------------------------------------------------------
-    logger.info("\n" + "🏷️  " * 20)
-    logger.info("PARTE 3: TOKENS ESPECIAIS E SEUS IMPACTOS")
-    logger.info("🏷️  " * 20)
-    
     demonstrate_special_tokens_impact()
     
     logger.info(f"\n{'='*60}")
-    logger.info("✅ EXPLORAÇÃO DE TOKENIZADORES CONCLUÍDA!")
-    logger.info("📚 Próximo passo: Veja o módulo attention_visualizer.py")
+    logger.info("✅ TOKENIZER EXPLORATION COMPLETED!")
     logger.info(f"{'='*60}")
 
 

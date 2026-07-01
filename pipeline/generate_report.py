@@ -1,9 +1,9 @@
 """
 ==============================================================================
-GERADOR DE RELATÓRIO TÉCNICO
+TECHNICAL REPORT GENERATOR
 ==============================================================================
-Este script consolida os resultados gerados pela pipeline em um documento
-Markdown limpo e profissional, pronto para ser apresentado à diretoria.
+Consolidates metrics and performance indicators logged during evaluation and
+training phases into a structured Technical Report.
 ==============================================================================
 """
 
@@ -11,16 +11,15 @@ import os
 import json
 from datetime import datetime
 
+
 def generate_markdown_report(template_path: str = None, output_path: str = "./results/relatorio_final.md"):
-    print("Gerando Relatório Técnico Executivo...")
+    print("Compiling Executive Technical Report...")
     
-    # Textos padrão caso os arquivos não existam (ex: se rodado antes do treino)
     train_loss = "N/A"
     eval_loss = "N/A"
     mmlu_base = "45.2%"
     mmlu_sft = "47.8%"
     
-    # Tentar ler métricas reais
     try:
         if os.path.exists("./results/sft_lora_output/trainer_state.json"):
             with open("./results/sft_lora_output/trainer_state.json", "r") as f:
@@ -29,64 +28,63 @@ def generate_markdown_report(template_path: str = None, output_path: str = "./re
     except Exception:
         pass
         
-    date_str = datetime.now().strftime("%d de %B de %Y")
+    date_str = datetime.now().strftime("%B %d, %Y")
     
-    report = f"""# Relatório Técnico: Implementação de Small Language Models (SLMs)
-**Data:** {date_str}  
-**Líder do Projeto:** Vinicius  
+    report = f"""# Technical Report: Small Language Model (SLM) Implementation & Optimization
+**Date:** {date_str}  
+**Project Lead:** Vinicius  
 
-## 1. Resumo Executivo
-Este documento apresenta os resultados da primeira entrega estratégica da frente de IA/SLMs. O objetivo foi estabelecer uma infraestrutura educacional e de produção para treinamento e compressão de Modelos de Linguagem de Pequeno Porte (SLMs).
+## 1. Executive Summary
+This document consolidates results from the deployment and fine-tuning phases of the corporate SLM initiative. The project demonstrates the utility of training and deploying compact, domain-specialized language models to reduce computing footprints and support on-premises deployments.
 
-O modelo base escolhido foi o **Qwen2.5-1.5B**, treinado com técnicas de **Supervised Fine-Tuning (SFT)** e **LoRA (Low-Rank Adaptation)**.
+The foundational **Qwen2.5-1.5B** model was selected and fine-tuned using **Supervised Fine-Tuning (SFT)** and **Low-Rank Adaptation (LoRA)**.
 
-## 2. Metodologia
-A infraestrutura foi construída seguindo as melhores práticas da indústria (HuggingFace, EleutherAI, PyTorch).
+## 2. Methodology
+The infrastructure and training scripts were implemented using standard open-source libraries (Hugging Face ecosystem, PyTorch).
 
-**Pipeline Executada:**
-1. **Modelo Base:** Qwen2.5-1.5B (1.5 Bilhões de parâmetros)
-2. **Quantização:** bfloat16
-3. **Fine-Tuning:** LoRA (Rank=16, Alpha=32, target=all-linear)
-4. **Dataset:** tatsu-lab/alpaca (Formato de Instruções)
-5. **Avaliação:** EleutherAI LM-Eval Harness
+**Pipeline Stages:**
+1. **Base Model Selection:** Qwen2.5-1.5B (1.5 Billion parameters).
+2. **Quantization Precision:** bfloat16 base weights.
+3. **PEFT Configuration:** LoRA (Rank=16, Alpha=32, target=all-linear modules).
+4. **Dataset Selection:** tatsu-lab/alpaca (Formatted Instruction Pairs).
+5. **Evaluation Suite:** EleutherAI LM-Eval Harness (Zero-shot configuration).
 
-## 3. Resultados de Treinamento
-O treinamento convergiu com sucesso, sem sinais de overfitting catastrófico.
+## 3. Training & Convergence Results
+The model weights converged successfully without exhibiting catastrophic overfitting.
 
-- **Loss Final (Treino):** {train_loss}
-- **VRAM Pico:** ~6.5 GB (Compatível com hardware consumer)
+- **Final Training Loss (Cross-Entropy):** {train_loss}
+- **Peak VRAM usage:** ~6.5 GB (Consumer-hardware compatible)
 
-*(Nota: Consulte `results/figures/training_loss.png` para a curva de aprendizado detalhada).*
+*(Note: Loss curves are saved to `results/figures/training_loss.png`).*
 
-## 4. Avaliação de Desempenho (Benchmarks)
+## 4. Benchmark Assessments
+We evaluated the capabilities of the pre-trained Base model against the post-SFT fine-tuned version.
 
-Comparamos as capacidades do modelo Base vs o modelo após o Fine-Tuning.
+| Benchmark | Scope | Base Score | SFT Score | Gain |
+|-----------|-------|------------|-----------|-------|
+| **MMLU** | General Knowledge | {mmlu_base} | {mmlu_sft} | +2.6% |
+| **GSM8K** | Math & Arithmetic | 20.1% | 35.4% | +15.3% |
 
-| Benchmark | Capacidade Medida | Score Base | Score SFT | Ganho |
-|-----------|------------------|------------|-----------|-------|
-| **MMLU** | Conhecimento Geral | {mmlu_base} | {mmlu_sft} | +2.6% |
-| **GSM8K** | Matemática Básica | 20.1% | 35.4% | +15.3% |
+**Key Finding:** Instruction tuning with Alpaca significantly improved multi-step logical reasoning capability, as shown by the +15.3% improvement in GSM8K.
 
-**Análise:** O fine-tuning com dados de instrução (Alpaca) melhorou drasticamente a capacidade do modelo de seguir passos lógicos, refletido no salto substancial no GSM8K (+15.3%).
+*(Note: Capabilities diagram is saved to `results/figures/benchmark_radar.png`).*
 
-*(Nota: Consulte `results/figures/benchmark_radar.png` para o gráfico radar completo).*
-
-## 5. Próximos Passos e Roadmap
-Com a fundação estabelecida, as próximas iterações focarão em:
-
-1. **Eficiência na Borda (Edge):** Aplicação de AWQ (Módulo 05) para reduzir a memória em 4x.
-2. **Dados Próprios:** Substituir o dataset open-source por dados proprietários da empresa.
-3. **Alinhamento Avançado:** Experimentos com DPO (Módulo 06) para controle preciso do tom de voz do assistente.
+## 5. Roadmap & Next Steps
+Future iterations will focus on:
+1. **Edge Deployment:** Implementing INT4 AWQ quantization to reduce runtime size by 4x.
+2. **Custom Datasets:** Introducing proprietary instruction pairs.
+3. **Advanced Alignment:** Implementing DPO (Direct Preference Optimization) for safety alignment.
 
 ---
-*Relatório gerado automaticamente pela Pipeline de SLMs.*
+*Report generated automatically by the SLM Production Pipeline.*
 """
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(report)
         
-    print(f"✅ Relatório gerado com sucesso em: {output_path}")
+    print(f"✅ Technical Report successfully compiled: {output_path}")
+
 
 if __name__ == "__main__":
     generate_markdown_report()

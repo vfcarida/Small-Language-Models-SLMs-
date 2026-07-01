@@ -1,29 +1,29 @@
 """
 ==============================================================================
-MÓDULO 01 — INFERÊNCIA BÁSICA COM SMALL LANGUAGE MODELS
+MODULE 01 — BASIC INFERENCE WITH SMALL LANGUAGE MODELS
 ==============================================================================
-NÍVEL: 🟢 Iniciante
-TEMPO ESTIMADO: 15 minutos
+LEVEL: 🟢 Beginner
+ESTIMATED TIME: 15 minutes
 
-OBJETIVO:
-    Aprender a carregar um SLM do Hugging Face Hub e gerar texto usando
-    diferentes estratégias de decodificação (greedy, sampling, top-k, top-p).
+OBJECTIVE:
+    Learn how to load an SLM from the Hugging Face Hub and generate text
+    using different decoding strategies (greedy, sampling, top-k, top-p).
 
-CONCEITOS ABORDADOS:
-    1. Como carregar um modelo pré-treinado com AutoModelForCausalLM
-    2. Estratégias de decodificação e seus trade-offs
-    3. Medição de uso de memória (VRAM/RAM)
-    4. Geração com diferentes temperaturas
+CONCEPTS COVERED:
+    1. Loading pre-trained models with AutoModelForCausalLM.
+    2. Decoding strategies and their operational trade-offs.
+    3. Hardware usage instrumentation (VRAM/RAM).
+    4. Text generation variations using temperatures.
 
-PRÉ-REQUISITOS:
+PREREQUISITES:
     pip install transformers torch accelerate
 
-REFERÊNCIAS:
+REFERENCES:
     - Holtzman et al., "The Curious Case of Neural Text Degeneration", 2020
-      (Paper sobre top-p/nucleus sampling)
+      (Nucleus sampling paper)
     - HuggingFace, "How to generate text", 2024
 
-COMO EXECUTAR:
+RUN COMMAND:
     python src/module_01_inference/basic_inference.py
 ==============================================================================
 """
@@ -53,46 +53,42 @@ def load_model(
     model_id: str = "Qwen/Qwen2.5-1.5B",
     torch_dtype: str = "bfloat16",
     device_map: str = "auto",
+    compile_model: bool = False,
 ) -> tuple:
     """
-    Carrega um Small Language Model do Hugging Face Hub.
+    Loads a Small Language Model from the Hugging Face Hub.
     
-    CONCEITO EDUCACIONAL — CARREGAMENTO DE MODELOS
-    =================================================
-    AutoModelForCausalLM.from_pretrained() faz automaticamente:
-    1. Download dos pesos do modelo (se não estiver em cache)
-    2. Mapeamento dos pesos para as camadas da arquitetura
-    3. Distribuição entre dispositivos (GPU/CPU) via device_map
-    
-    OPÇÕES IMPORTANTES:
-    
-    torch_dtype — Precisão numérica dos pesos:
-    ─────────────────────────────────────────────
-    - float32 (FP32): Máxima precisão, 4 bytes/param. Modelo 1.5B ≈ 6 GB
-    - float16 (FP16): Boa precisão, 2 bytes/param. Modelo 1.5B ≈ 3 GB
-      ⚠️ Pode causar NaN em some architectures (overflow no exp())
-    - bfloat16 (BF16): Mesma memória que FP16, mas range maior.
-      ✅ RECOMENDADO para Qwen, Llama, Phi. Previne NaN.
-    
-    device_map — Onde colocar os pesos:
-    ─────────────────────────────────────
-    - "auto": Distribui automaticamente entre GPUs disponíveis
-    - "cpu": Força tudo para CPU (lento, mas funciona sem GPU)
-    - "cuda:0": Força para uma GPU específica
-    
+    PARAMETERS AND PRECISION:
+        torch_dtype:
+            - float32 (FP32): Maximum precision, 4 bytes/param. 1.5B model ~ 6 GB VRAM.
+            - float16 (FP16): Standard GPU float, 2 bytes/param. 1.5B model ~ 3 GB VRAM.
+              ⚠️ May cause numerical instability (overflow in exponential layers).
+            - bfloat16 (BF16): 2 bytes/param, matching exponent dynamic range of FP32.
+              ✅ Recommended for modern architectures (prevines NaN values).
+              
     Args:
-        model_id: ID do modelo no Hugging Face Hub.
-        torch_dtype: Tipo numérico ("float32", "float16", "bfloat16").
-        device_map: Estratégia de distribuição.
-    
+        model_id: Model registry identifier.
+        torch_dtype: Data type string representation.
+        device_map: Automatic layer distribution schema.
+        compile_model: Flag indicating whether to execute PyTorch graph compilation.
+        
     Returns:
-        Tupla (model, tokenizer) prontos para uso.
+        Tuple: Model and tokenizer instances.
     """
     logger.info(f"{'='*60}")
-    logger.info(f"CARREGANDO MODELO: {model_id}")
+    logger.info(f"LOADING MODEL ARCHITECTURE: {model_id}")
     logger.info(f"{'='*60}")
     
-    # Mapear string para tipo PyTorch
+    # Verify Flash Attention 2 package presence
+    try:
+        import flash_attn
+        logger.info("Flash Attention 2 library detected. Supported layer mappings active.")
+    except ImportError:
+        logger.warning(
+            "Flash Attention 2 package is not installed. "
+            "Falling back to PyTorch native Scaled Dot-Product Attention (SDPA)."
+        )
+        
     dtype_map = {
         "float32": torch.float32,
         "float16": torch.float16,
@@ -100,28 +96,19 @@ def load_model(
     }
     dtype = dtype_map.get(torch_dtype, torch.bfloat16)
     
-    # Medir VRAM antes do carregamento
     vram_before = get_vram_usage_gb()
     
-    # --------------------------------------------------------------------------
-    # CARREGAR TOKENIZADOR
-    # --------------------------------------------------------------------------
-    logger.info("Carregando tokenizador...")
+    logger.info("Initializing tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(
         model_id,
         trust_remote_code=True,
     )
     
-    # FIX CRÍTICO: Definir pad_token se não existir
-    # Sem isso, batching de sequências de tamanhos diferentes FALHA
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-        logger.info(f"pad_token não definido. Usando eos_token: '{tokenizer.eos_token}'")
-    
-    # --------------------------------------------------------------------------
-    # CARREGAR MODELO
-    # --------------------------------------------------------------------------
-    logger.info(f"Carregando modelo em {torch_dtype}...")
+        logger.info(f"Default pad_token unset. Resolved pad = eos: '{tokenizer.eos_token}'")
+        
+    logger.info(f"Loading weights in precision type: {torch_dtype}...")
     start_time = time.perf_counter()
     
     model = AutoModelForCausalLM.from_pretrained(
@@ -131,21 +118,26 @@ def load_model(
         trust_remote_code=True,
     )
     
+    # Support PyTorch Model compilation
+    if compile_model:
+        if hasattr(torch, "compile"):
+            logger.info("Compiling model graph via torch.compile...")
+            model = torch.compile(model)
+            logger.info("PyTorch model compiled successfully.")
+        else:
+            logger.warning("torch.compile is not available in the current PyTorch setup.")
+            
     load_time = time.perf_counter() - start_time
     vram_after = get_vram_usage_gb()
     
-    # --------------------------------------------------------------------------
-    # REPORTAR ESTATÍSTICAS
-    # --------------------------------------------------------------------------
     params = count_parameters(model)
     size_mb = get_model_size_mb(model)
     
-    logger.info(f"\n📊 ESTATÍSTICAS DO MODELO:")
-    logger.info(f"   Parâmetros totais: {params['total']:,}")
-    logger.info(f"   Tamanho em memória: {size_mb:.1f} MB ({size_mb/1024:.2f} GB)")
-    logger.info(f"   VRAM utilizada: {vram_after - vram_before:.3f} GB")
-    logger.info(f"   Tempo de carregamento: {load_time:.2f}s")
-    logger.info(f"   Device: {next(model.parameters()).device}")
+    logger.info(f"\n📊 MODEL RUNTIME STATISTICS:")
+    logger.info(f"   Total Parameters: {params['total']:,}")
+    logger.info(f"   Memory Profile: {size_mb:.1f} MB ({size_mb/1024:.2f} GB)")
+    logger.info(f"   VRAM Allocation Change: +{vram_after - vram_before:.3f} GB")
+    logger.info(f"   Loading Duration: {load_time:.2f}s")
     
     return model, tokenizer
 
@@ -161,102 +153,59 @@ def generate_text(
     top_p: float = 0.9,
 ) -> str:
     """
-    Gera texto usando diferentes estratégias de decodificação.
+    Generates text outputs using specific decoding algorithms.
     
-    TEORIA — ESTRATÉGIAS DE DECODIFICAÇÃO
-    ========================================
-    Dado um prompt, o modelo gera uma distribuição de probabilidade sobre
-    todos os tokens do vocabulário para a PRÓXIMA posição. A estratégia
-    de decodificação define COMO escolher o próximo token.
-    
-    1. GREEDY (determinístico):
-       Sempre escolhe o token com MAIOR probabilidade.
-       ✅ Consistente e reprodutível
-       ❌ Texto repetitivo e previsível
-       Uso: Quando precisa de saída determinística (classificação, extração)
-    
-    2. SAMPLING (estocástico):
-       Amostra aleatoriamente da distribuição de probabilidade.
-       ✅ Texto diverso e criativo
-       ❌ Pode gerar nonsense se temperatura muito alta
-       Uso: Geração criativa, chatbots
-    
-    3. TOP-K SAMPLING (Fan et al., 2018):
-       Restringe a amostragem aos K tokens mais prováveis.
-       ✅ Evita tokens muito improváveis
-       ❌ K fixo: pode incluir tokens ruins (se dist. é flat) ou excluir
-          bons (se dist. é peaked)
-       Uso: K=50 é um bom default
-    
-    4. TOP-P / NUCLEUS SAMPLING (Holtzman et al., 2020):
-       Restringe aos tokens cuja probabilidade acumulada ≤ p.
-       ✅ Adapta-se automaticamente à forma da distribuição
-       ❌ Menos intuitivo que top-k
-       Uso: p=0.9 é o padrão mais usado na indústria
-    
-    TEMPERATURA:
-    ─────────────
-    Escala os logits ANTES do softmax: softmax(logits / T)
-    - T < 1.0: Distribuição mais "peaked" → mais determinístico
-    - T = 1.0: Sem efeito (distribuição original)
-    - T > 1.0: Distribuição mais "flat" → mais diverso/caótico
-    - T → 0: Equivale a greedy
-    
+    DECODING STRATEGIES:
+        1. GREEDY: Selects the absolute highest probability token next.
+           - Highly consistent and reproducible.
+           - Can lead to repetitive loops.
+        2. SAMPLING: Introduces probabilistic variance based on temperature scaling.
+        3. TOP-K: Truncates vocab choices to the top-K highest scoring tokens.
+        4. TOP-P (Nucleus): Restricts selection to the smallest set of tokens 
+           whose cumulative probability meets the threshold P.
+           
     Args:
-        model: Modelo de linguagem carregado.
-        tokenizer: Tokenizador correspondente.
-        prompt: Texto de entrada.
-        strategy: "greedy", "sample", "top_k", "top_p", "beam".
-        max_new_tokens: Quantidade máxima de tokens a gerar.
-        temperature: Controle de aleatoriedade (0.0-2.0).
-        top_k: Número de tokens para top-k sampling.
-        top_p: Limite de probabilidade acumulada para nucleus sampling.
-    
+        model: Loaded language model.
+        tokenizer: Tokenizer.
+        prompt: Raw query input.
+        strategy: Algorithm identifier ('greedy', 'sample', 'top_k', 'top_p').
+        max_new_tokens: Token count limit to generate.
+        temperature: Probabilistic randomness scaling.
+        top_k: Top K choices cutoff.
+        top_p: Nucleus scale threshold.
+        
     Returns:
-        Texto gerado como string.
+        str: Generated text output.
     """
-    # Tokenizar o prompt
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
-    # Configurar parâmetros de geração baseado na estratégia
     gen_kwargs = {
         "max_new_tokens": max_new_tokens,
         "pad_token_id": tokenizer.pad_token_id,
     }
     
     if strategy == "greedy":
-        # Greedy: do_sample=False força seleção determinística
         gen_kwargs["do_sample"] = False
-        
     elif strategy == "sample":
-        # Sampling puro: amostrar da distribuição completa
         gen_kwargs["do_sample"] = True
         gen_kwargs["temperature"] = temperature
-        
     elif strategy == "top_k":
-        # Top-K: restringir aos K tokens mais prováveis
         gen_kwargs["do_sample"] = True
         gen_kwargs["temperature"] = temperature
         gen_kwargs["top_k"] = top_k
-        
     elif strategy == "top_p":
-        # Nucleus Sampling: restringir por probabilidade acumulada
         gen_kwargs["do_sample"] = True
         gen_kwargs["temperature"] = temperature
         gen_kwargs["top_p"] = top_p
-        gen_kwargs["top_k"] = 0  # Desabilitar top-k quando usando top-p
-        
+        gen_kwargs["top_k"] = 0
     else:
-        raise ValueError(f"Estratégia desconhecida: {strategy}")
-    
-    # Gerar texto
+        raise ValueError(f"Unknown generation decoding strategy: {strategy}")
+        
     with torch.no_grad():
         output_ids = model.generate(**inputs, **gen_kwargs)
-    
-    # Decodificar apenas os tokens NOVOS (remover o prompt)
+        
     new_tokens = output_ids[0][inputs["input_ids"].shape[-1]:]
     generated_text = tokenizer.decode(new_tokens, skip_special_tokens=True)
-    
     return generated_text
 
 
@@ -265,13 +214,13 @@ def demonstrate_decoding_strategies(
     tokenizer: AutoTokenizer,
 ):
     """
-    Demonstra visualmente como diferentes estratégias produzem textos distintos.
+    Compares outputs generated using distinct decoding options side-by-side.
     """
     prompt = "The future of artificial intelligence in healthcare will"
     
     logger.info(f"\n{'='*60}")
-    logger.info("COMPARAÇÃO DE ESTRATÉGIAS DE DECODIFICAÇÃO")
-    logger.info(f"Prompt: \"{prompt}\"")
+    logger.info("DECODING STRATEGY COMPARISON")
+    logger.info(f"Input Prompt: \"{prompt}\"")
     logger.info(f"{'='*60}")
     
     strategies = [
@@ -297,48 +246,29 @@ def demonstrate_decoding_strategies(
             max_new_tokens=50,
             **kwargs,
         )
-        
-        logger.info(f"\n   📝 {label}:")
+        logger.info(f"\n   📝 Strategy: {label}:")
         logger.info(f"      {text[:200]}...")
 
 
 def main():
-    """
-    Pipeline principal de demonstração de inferência.
-    """
-    logger.info("🚀 MÓDULO 01: INFERÊNCIA BÁSICA COM SLMs")
+    logger.info("🚀 MODULE 01: BASIC INFERENCE PIPELINE RUN")
     logger.info("=" * 60)
     
-    # --------------------------------------------------------------------------
-    # 1. CARREGAR MODELO
-    # --------------------------------------------------------------------------
     model, tokenizer = load_model(
         model_id="Qwen/Qwen2.5-1.5B",
         torch_dtype="bfloat16",
+        compile_model=False,
     )
-    
-    # --------------------------------------------------------------------------
-    # 2. GERAÇÃO SIMPLES
-    # --------------------------------------------------------------------------
-    logger.info(f"\n{'='*60}")
-    logger.info("GERAÇÃO SIMPLES DE TEXTO")
-    logger.info(f"{'='*60}")
     
     prompt = "Explain what a Small Language Model is in simple terms:"
     text = generate_text(model, tokenizer, prompt, strategy="top_p", max_new_tokens=100)
     logger.info(f"\nPrompt: {prompt}")
-    logger.info(f"Resposta: {text}")
+    logger.info(f"Response: {text}")
     
-    # --------------------------------------------------------------------------
-    # 3. COMPARAÇÃO DE ESTRATÉGIAS
-    # --------------------------------------------------------------------------
     demonstrate_decoding_strategies(model, tokenizer)
     
-    # --------------------------------------------------------------------------
-    # 4. MEDIÇÃO DE LATÊNCIA
-    # --------------------------------------------------------------------------
     logger.info(f"\n{'='*60}")
-    logger.info("MEDIÇÃO DE LATÊNCIA")
+    logger.info("LATENCY MEASUREMENT RUNS")
     logger.info(f"{'='*60}")
     
     latency = measure_inference_latency(
@@ -349,21 +279,18 @@ def main():
         num_runs=3,
     )
     
-    logger.info(f"\n📊 RESULTADOS DE LATÊNCIA:")
+    logger.info(f"\n📊 MEASURED INFERENCE PROFILE:")
     logger.info(f"   TTFT: {latency['ttft_ms']:.2f} ms")
     logger.info(f"   Throughput: {latency['throughput_tokens_per_sec']:.2f} tokens/s")
-    logger.info(f"   Tempo total (50 tokens): {latency['total_time_ms']:.2f} ms")
+    logger.info(f"   Total Duration: {latency['total_time_ms']:.2f} ms")
     
-    # --------------------------------------------------------------------------
-    # CLEANUP
-    # --------------------------------------------------------------------------
+    # Cleanup memory allocations
     del model
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    
+        
     logger.info(f"\n{'='*60}")
-    logger.info("✅ MÓDULO 01 CONCLUÍDO!")
-    logger.info("📚 Próximo passo: Módulo 02 (SFT com LoRA)")
+    logger.info("✅ MODULE 01 RUN COMPLETED!")
     logger.info(f"{'='*60}")
 
 

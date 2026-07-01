@@ -1,25 +1,25 @@
 """
 ==============================================================================
-MÓDULO 05 — AWQ QUANTIZATION (Activation-aware Weight Quantization)
+MODULE 05 — AWQ QUANTIZATION (Activation-aware Weight Quantization)
 ==============================================================================
-NÍVEL: 🔴 Avançado
-TEMPO ESTIMADO: 30 minutos (leitura) + compilação (lento)
+LEVEL: 🔴 Advanced
+ESTIMATED TIME: 30 minutes (reading) + calibration run
 
-OBJETIVO:
-    Diferente do bitsandbytes que quantiza dinamicamente (lento para inferência),
-    o AWQ cria um modelo estático de 4-bits com kernels CUDA super otimizados.
-    É o PADRÃO DA INDÚSTRIA para deploy em produção de SLMs no edge.
+OBJECTIVE:
+    Learn how to perform post-training 4-bit weights quantization using AWQ.
+    AWQ generates highly optimized CUDA kernels to accelerate inference and
+    reduce memory footprints in production edge environments.
 
-CONCEITOS ABORDADOS:
-    1. Salient Weights e Outliers
-    2. Scaling channels em vez de quantizar
-    3. W_bit, Group Size e Zero Point
-    
-REFERÊNCIAS:
+CONCEPTS COVERED:
+    1. Salient Weights and Activation Outliers.
+    2. Per-channel scaling vs. Round-to-Nearest quant.
+    3. Group size, bit settings, and zero point parameters.
+
+REFERENCES:
     - Lin et al., "AWQ: Activation-aware Weight Quantization for LLM 
       Compression and Acceleration", arXiv:2306.00978, 2023
 
-COMO EXECUTAR:
+RUN COMMAND:
     python src/module_05_quantization/awq_quantization.py
 ==============================================================================
 """
@@ -35,8 +35,9 @@ from src.utils.config import load_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="AWQ CLI")
+    parser = argparse.ArgumentParser(description="AWQ Quantization CLI")
     parser.add_argument("--model_id", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default="./results/awq_model")
     return parser.parse_args()
@@ -44,31 +45,20 @@ def parse_args():
 
 def run_awq_compilation(model_id: str, output_dir: str, config: dict):
     """
-    Executa a quantização Activation-aware.
+    Executes Activation-aware Weight Quantization.
     
-    TEORIA MATEMÁTICA — AWQ
-    ───────────────────────
-    1% dos pesos de uma rede são extremamente "salientes" (importantes).
-    Se você aplicar quantização INT4 clássica neles (como Round to Nearest),
-    o erro numérico destrói o conhecimento do modelo.
-    
-    AWQ não encontra esses pesos olhando para os pesos em si (|W|), mas 
-    olhando para as ATIVAÇÕES (|X|) quando dados passam por eles.
-    
-    A Mágica:
-    Em vez de tentar guardar o peso em FP16 (o que quebraria o formato misto),
-    o AWQ aplica um FATOR DE ESCALA (S) aos canais salientes ANTES da quantização,
-    e o inverso (1/S) nas ativações durante a inferência.
-    Isso joga os pesos para uma zona da curva de quantização onde o erro 
-    de arredondamento é matematicamente minimizado.
+    AWQ THEORY:
+        About 1% of model weights are highly salient. Standard uniform rounding
+        often causes numerical degradation. AWQ calculates activation magnitudes
+        passing through channels, applies scaling factors to protect salient channels,
+        and scales down activations during inference, preserving knowledge.
     """
     logger.info("=" * 60)
-    logger.info(f"COMPILANDO AWQ INT4 PARA: {model_id}")
+    logger.info(f"COMPILING AWQ INT4 MODEL FOR: {model_id}")
     logger.info("=" * 60)
     
     quant_cfg = config.get("quantization", {})
     
-    # 1. CONFIGURAÇÃO AWQ
     quant_config = {
         "zero_point": quant_cfg.get("zero_point", True),
         "q_group_size": quant_cfg.get("q_group_size", 128),
@@ -76,30 +66,26 @@ def run_awq_compilation(model_id: str, output_dir: str, config: dict):
         "version": quant_cfg.get("version", "GEMM")
     }
     
-    logger.info(f"Configuração: {quant_config}")
+    logger.info(f"Quantization Settings: {quant_config}")
     
     try:
-        # 2. CARREGAR MODELO
-        logger.info("\nCarregando modelo original (requer bastante VRAM)...")
+        logger.info("\nLoading original FP16 weights...")
         model = AutoAWQForCausalLM.from_pretrained(model_id, safetensors=True)
         tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
         
-        # 3. QUANTIZAR
-        logger.info("\nIniciando matemática Activation-Aware (isso vai demorar)...")
-        # O AWQ passa texto pelo modelo para achar os salient weights
+        logger.info("\nStarting activation-aware profiling (running calibration passes)...")
         model.quantize(tokenizer, quant_config=quant_config)
         
-        # 4. SALVAR
         os.makedirs(output_dir, exist_ok=True)
-        logger.info(f"\nSalvando modelo INT4 super-rápido em: {output_dir}")
+        logger.info(f"\nSaving compiled 4-bit model to: {output_dir}")
         model.save_quantized(output_dir)
         tokenizer.save_pretrained(output_dir)
         
-        logger.info("✅ AWQ COMPLETO! Modelo pronto para vLLM/TGI.")
+        logger.info("✅ AWQ quantization completed successfully.")
         
     except Exception as e:
-        logger.error(f"Falha no AWQ: {e}")
-        logger.error("Dica: Certifique-se de que a biblioteca autoawq está compilada para seu CUDA.")
+        logger.error(f"AWQ compilation failed: {e}")
+        logger.error("Verify that the autoawq package is compiled and matched to your active CUDA device.")
 
 
 def main():
@@ -107,8 +93,8 @@ def main():
     args = parse_args()
     
     model_id = args.model_id or config.get("model", {}).get("base_model_id", "Qwen/Qwen2.5-1.5B")
-    
     run_awq_compilation(model_id, args.output_dir, config)
+
 
 if __name__ == "__main__":
     main()

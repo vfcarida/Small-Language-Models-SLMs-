@@ -1,24 +1,24 @@
 """
 ==============================================================================
-MÓDULO 07 — AVALIAÇÃO DE PERPLEXIDADE E LATÊNCIA
+MODULE 07 — PERPLEXITY AND LATENCY EVALUATION RUNS
 ==============================================================================
-NÍVEL: 🟡 Intermediário
-TEMPO ESTIMADO: 15 minutos
+LEVEL: 🟡 Intermediate
+ESTIMATED TIME: 15 minutes
 
-OBJETIVO:
-    Aprender como quantificar a "confusão" (Perplexidade) de um modelo
-    em textos específicos e como medir sua velocidade (Latência).
+OBJECTIVE:
+    Learn how to calculate and observe model perplexity scores on target text segments
+    and evaluate processing speed metrics (TTFT, throughput) under controlled settings.
 
-CONCEITOS ABORDADOS:
-    1. Cross-Entropy Loss em sequências
-    2. Sliding Window Perplexity (para textos > Context Window)
-    3. Time-To-First-Token (TTFT)
-    
-REFERÊNCIAS:
+CONCEPTS COVERED:
+    1. Cross-Entropy Loss over sequences.
+    2. Sliding Window perplexity algorithms.
+    3. TTFT (Time-To-First-Token) calculations.
+
+REFERENCES:
     - Jurafsky & Martin, "Speech and Language Processing", 2024
     - HuggingFace Evaluate Library
 
-COMO EXECUTAR:
+RUN COMMAND:
     python src/module_07_evaluation/perplexity_eval.py
 ==============================================================================
 """
@@ -32,38 +32,42 @@ from src.utils.metrics import calculate_perplexity, measure_inference_latency
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def main():
     logger.info("=" * 60)
-    logger.info("MÓDULO 07: PERPLEXIDADE E LATÊNCIA")
+    logger.info("MODULE 07: PERPLEXITY AND LATENCY ASSESSMENT RUN")
     logger.info("=" * 60)
     
     model_id = "Qwen/Qwen2.5-1.5B"
     
-    logger.info(f"Carregando {model_id}...")
+    logger.info(f"Loading tokenizer and model: {model_id}...")
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_id, torch_dtype=torch.bfloat16, device_map="auto"
     )
     
-    # TEXTOS DE TESTE
-    texto_facil = "O céu é azul e a grama é verde. O sol brilha durante o dia."
-    texto_dificil = "A mecânica quântica descreve sobreposições de autoestados de Hamiltonianos hermitianos em espaços de Hilbert."
-    texto_nonsense = "Sapato voa porque abacaxi não sabe matemática quântica do pneu."
+    # Text validation sequences
+    simple_text = "The sky is blue and the grass is green. The sun shines bright during the day."
+    dense_text = "Quantum mechanics describes the superposition of eigenstates under Hamiltonian systems in Hilbert spaces."
+    gibberish_text = "Shoes fly because pineapple does not understand mathematical quantum tires."
     
-    # 1. PERPLEXIDADE
-    logger.info("\n📊 TESTANDO PERPLEXIDADE (Quão confuso o modelo está?)")
-    logger.info("   Valores Menores = Melhor (1 = perfeição impossível)")
+    logger.info("\n📊 ASSESSING PERPLEXITY (Lower = better; 1.0 represents theoretical perfection):")
     
-    for nome, texto in [("Fácil", texto_facil), ("Difícil", texto_dificil), ("Absurdo", texto_nonsense)]:
-        ppl = calculate_perplexity(model, tokenizer, texto)
-        logger.info(f"   [{nome}]: PPL = {ppl:.2f} | Texto: '{texto[:40]}...'")
+    test_cases = [
+        ("Simple", simple_text),
+        ("Dense", dense_text),
+        ("Gibberish", gibberish_text)
+    ]
+    
+    for label, text in test_cases:
+        ppl = calculate_perplexity(model, tokenizer, text)
+        logger.info(f"   [{label} Case]: PPL = {ppl:.2f} | Context excerpt: '{text[:40]}...'")
         
-    logger.info("\n   Conclusão: O modelo acha o texto normal muito provável (ppl baixa),")
-    logger.info("   mas textos confusos/aleatórios são improváveis (ppl alta).")
+    logger.info("\n   Observation: Standard structured language sequences result in lower perplexity scores.")
+    logger.info("   Out-of-distribution or random token assemblies result in high scores.")
     
-    # 2. LATÊNCIA
-    logger.info("\n⏱️ TESTANDO LATÊNCIA E THROUGHPUT")
-    prompt = "Explique a teoria da relatividade em 3 parágrafos:"
+    logger.info("\n⏱️ MEASURING LATENCY AND THROUGHPUT PERFORMANCE:")
+    prompt = "Explain the core concepts of general relativity in three paragraphs:"
     
     metrics = measure_inference_latency(
         model, tokenizer, prompt, max_new_tokens=128, num_warmup=1, num_runs=3
@@ -71,11 +75,12 @@ def main():
     
     logger.info(f"   Prompt: {prompt}")
     logger.info(f"   Time To First Token (TTFT): {metrics['ttft_ms']:.1f} ms")
-    logger.info(f"   Throughput: {metrics['throughput_tokens_per_sec']:.1f} tokens/s")
+    logger.info(f"   Throughput Speed: {metrics['throughput_tokens_per_sec']:.1f} tokens/s")
     
     if metrics['throughput_tokens_per_sec'] < 20:
-        logger.info("   💡 Dica: < 20 t/s é lento para interação humana.")
-        logger.info("      Solução: AWQ, vLLM, ou comprar GPUs melhores!")
+        logger.info("   💡 Optimization notice: Throughput speeds below 20 tokens/sec can impact interactive chatbots.")
+        logger.info("      Consider deploying INT4 models (AWQ) or using accelerated serving packages (vLLM).")
+
 
 if __name__ == "__main__":
     main()

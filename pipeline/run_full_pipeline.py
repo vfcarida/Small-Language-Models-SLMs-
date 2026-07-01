@@ -1,22 +1,20 @@
 """
 ==============================================================================
-PIPELINE END-TO-END — ENTREGA DO PROJETO SLM
+PIPELINE END-TO-END — SLM PROJECT DELIVERY
 ==============================================================================
-NÍVEL: 🟣 Produção
-TEMPO ESTIMADO DE EXECUÇÃO: ~4 horas (em GPU de 8GB)
+LEVEL: 🔴 Production
+ESTIMATED EXECUTION TIME: ~4 hours (on 8GB GPU)
 
-OBJETIVO:
-    Este script orquestra toda a entrega do projeto. Ele une os módulos
-    individuais em um fluxo de trabalho único e contínuo:
-    
-    1. Setup e Validação de Ambiente
-    2. Avaliação Zero-Shot do Modelo Base (Baseline)
-    3. Treinamento SFT + LoRA no dataset Alpaca
-    4. Merge do Adapter
-    5. Avaliação do Modelo Finetuned
-    6. Geração dos Gráficos de Resultado
-    
-COMO EXECUTAR:
+OBJECTIVE:
+    Orchestrates the entire SLM project delivery workflow:
+    1. Environment setup and verification.
+    2. Zero-shot baseline evaluation.
+    3. SFT + LoRA training on Alpaca instructions.
+    4. Adapter weight merging.
+    5. Evaluation of fine-tuned weights.
+    6. Performance visualizations.
+
+RUN COMMAND:
     python pipeline/run_full_pipeline.py
 ==============================================================================
 """
@@ -26,7 +24,6 @@ import sys
 import logging
 import time
 
-# Adicionar a raiz do projeto ao path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
@@ -45,26 +42,26 @@ logger = logging.getLogger(__name__)
 
 def main():
     logger.info("=" * 80)
-    logger.info("🚀 INICIANDO PIPELINE END-TO-END: ENTREGA DO SLM".center(80))
+    logger.info("🚀 INITIATING SLM END-TO-END PRODUCTION PIPELINE".center(80))
     logger.info("=" * 80)
     
     start_time = time.time()
     
     # --------------------------------------------------------------------------
-    # FASE 0: SETUP E CONFIGURAÇÃO
+    # STAGE 0: SETUP
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 0/5] SETUP DE AMBIENTE")
+    logger.info("\n[STAGE 0/5] RUNTIME ENVIRONMENT SETUP")
     config = load_config()
     ensure_output_dirs(config)
     
     model_id = config.get("model", {}).get("base_model_id", "Qwen/Qwen2.5-1.5B")
-    logger.info(f"Modelo Alvo: {model_id}")
-    logger.info(f"VRAM Inicial: {get_vram_usage_gb():.2f} GB")
+    logger.info(f"Target Model ID: {model_id}")
+    logger.info(f"Initial VRAM Allocation: {get_vram_usage_gb():.2f} GB")
     
     # --------------------------------------------------------------------------
-    # FASE 1: AVALIAÇÃO BASELINE (O que o modelo já sabe?)
+    # STAGE 1: BASELINE EVALUATION
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 1/5] AVALIAÇÃO DO MODELO BASE")
+    logger.info("\n[STAGE 1/5] EVALUATING BASELINE MODEL PERFORMANCE")
     baseline_dir = "./results/eval_baseline"
     run_lm_eval(
         model_id=model_id,
@@ -75,19 +72,18 @@ def main():
     )
     
     # --------------------------------------------------------------------------
-    # FASE 2: TREINAMENTO (O coração do projeto)
+    # STAGE 2: SUPERVISED FINE-TUNING (SFT + LoRA)
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 2/5] TREINAMENTO (SFT + LoRA)")
-    logger.info("Iniciando treinamento no dataset Alpaca-GPT4. Isso vai demorar...")
+    logger.info("\n[STAGE 2/5] INITIATING TRAINING STAGES (SFT + LoRA)")
+    logger.info("Starting training runs. This operation is resource-intensive...")
     
     adapter_dir = train_sft_lora(config=config)
-    
-    logger.info(f"Treinamento concluído. Adapters salvos em: {adapter_dir}")
+    logger.info(f"Training completed successfully. Adapters written to: {adapter_dir}")
     
     # --------------------------------------------------------------------------
-    # FASE 3: MERGE (Preparando para deploy)
+    # STAGE 3: MERGING ADAPTER WEIGHTS
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 3/5] MERGE DO ADAPTER COM MODELO BASE")
+    logger.info("\n[STAGE 3/5] MERGING LORA WEIGHTS WITH BASE PARAMETERS")
     merged_dir = "./results/sft_merged_model"
     
     merge_lora_adapter(
@@ -97,13 +93,13 @@ def main():
     )
     
     # --------------------------------------------------------------------------
-    # FASE 4: AVALIAÇÃO PÓS-TREINO (Melhoramos?)
+    # STAGE 4: POST-TRAINING EVALUATION
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 4/5] AVALIAÇÃO DO MODELO FINETUNED")
+    logger.info("\n[STAGE 4/5] ASSESSING FINE-TUNED MODEL CAPABILITIES")
     eval_finetuned_dir = "./results/eval_finetuned"
     
     run_lm_eval(
-        model_id=merged_dir, # Apontando para o nosso modelo local!
+        model_id=merged_dir,
         tasks="mmlu,gsm8k",
         num_fewshot=0,
         batch_size=4,
@@ -111,10 +107,9 @@ def main():
     )
     
     # --------------------------------------------------------------------------
-    # FASE 5: VISUALIZAÇÃO E RELATÓRIO
+    # STAGE 5: VISUALIZATIONS AND GRAPH GENERATION
     # --------------------------------------------------------------------------
-    logger.info("\n[FASE 5/5] GERAÇÃO DE GRÁFICOS")
-    
+    logger.info("\n[STAGE 5/5] GENERATING PERFORMANCE METRICS VISUALIZATIONS")
     os.makedirs("./results/figures", exist_ok=True)
     
     plot_training_loss(
@@ -132,11 +127,10 @@ def main():
     minutes, seconds = divmod(rem, 60)
     
     logger.info("\n" + "=" * 80)
-    logger.info(f"✅ PIPELINE CONCLUÍDA COM SUCESSO!".center(80))
-    logger.info(f"Tempo total: {int(hours)}h {int(minutes)}m {int(seconds)}s")
+    logger.info("✅ PIPELINE EXECUTION COMPLETED SUCCESSFULLY!".center(80))
+    logger.info(f"Total time elapsed: {int(hours)}h {int(minutes)}m {int(seconds)}s")
     logger.info("=" * 80)
-    logger.info("\nPróximo passo: Execute 'python pipeline/generate_report.py' para gerar")
-    logger.info("o relatório executivo em Markdown e PDF para sua apresentação.")
+    logger.info("\nNext step: Run 'python pipeline/generate_report.py' to generate details.")
 
 
 if __name__ == "__main__":

@@ -1,25 +1,21 @@
 """
 ==============================================================================
-MÓDULO DE DADOS — Funções de Preparação e Formatação de Datasets
+DATA UTILS MODULE — Dataset Formatting, Templates and Preparation
 ==============================================================================
-Este módulo centraliza toda a lógica de carregamento, formatação e
-pré-processamento de datasets para treinamento de SLMs.
+This module contains helper functions for loading, formatting and pre-processing
+instruction-following and preference datasets for SLMs.
 
-CONCEITO EDUCACIONAL:
-    A qualidade dos dados é o fator MAIS IMPORTANTE no treinamento de LMs.
-    Um dataset pequeno mas bem curado (50-100 exemplos de alta qualidade)
-    frequentemente supera um dataset enorme e ruidoso.
+EDUCATIONAL CONCERN:
+    Data quality is the most crucial factor in language model training.
+    A small, clean dataset (e.g. 50-100 high-quality samples) often beats
+    a massive, noisy one.
     
-    Referência: OpenAI, "Fine-tuning Best Practices", 2024
+    Reference: OpenAI, "Fine-tuning Best Practices", 2024
     
-    FORMATOS COMUNS:
+    COMMON SCHEMAS:
     1. Alpaca: {"instruction": "...", "input": "...", "output": "..."}
     2. ShareGPT: {"conversations": [{"role": "user", "content": "..."}]}
-    3. Chat Template: Usa tokens especiais do modelo (<|im_start|>, etc.)
-
-REFERÊNCIAS:
-    - Peng et al., "Instruction Tuning with GPT-4", 2023
-    - Zhou et al., "LIMA: Less Is More for Alignment", 2023
+    3. Chat Template: Native markup boundaries (<|im_start|>, etc.)
 ==============================================================================
 """
 
@@ -32,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 # ==============================================================================
-# TEMPLATES DE PROMPT
+# PROMPT TEMPLATES
 # ==============================================================================
-# Templates definem como estruturar as instruções para o modelo.
-# Cada modelo pode ter seu formato preferido, mas o formato Alpaca é universal.
+# Templates define how instructions are structured prior to entering the model.
+# Alpaca remains a highly robust format.
 
 ALPACA_TEMPLATE = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
@@ -59,44 +55,33 @@ ALPACA_TEMPLATE_NO_INPUT = """Below is an instruction that describes a task. Wri
 
 def format_alpaca_prompt(example: Dict[str, str]) -> Dict[str, str]:
     """
-    Formata um exemplo no formato Alpaca para treinamento.
-    
-    CONCEITO EDUCACIONAL:
-        O formato Alpaca foi introduzido por Stanford (2023) e se tornou
-        o padrão de facto para fine-tuning de instruções. A estrutura é:
-        
-        1. Instruction: O que o modelo deve fazer
-        2. Input (opcional): Contexto adicional
-        3. Response: A resposta desejada
-        
-        O modelo aprende a padrão "dada esta instrução → gere esta resposta".
-        
-    DETALHE TÉCNICO:
-        Durante o treinamento, o loss é calculado APENAS sobre os tokens
-        da Response. Os tokens da Instruction/Input servem como contexto
-        mas não geram gradiente (isso é feito automaticamente pelo SFTTrainer
-        quando se usa o campo "text" formatado).
+    Formats a single dataset example into the Alpaca prompt style.
     
     Args:
-        example: Dicionário com chaves 'instruction', 'input', 'output'.
-    
+        example: Dictionary containing 'instruction', 'input', and 'output' keys.
+        
     Returns:
-        Dicionário com chave 'text' contendo o prompt formatado.
+        Dict: Dictionary with a single 'text' key containing the formatted string prompt.
     """
-    # Se o campo 'input' existe e não está vazio, usar template com input
-    if example.get("input", "").strip():
+    instruction = example.get("instruction", "").strip()
+    inp = example.get("input", "").strip()
+    output = example.get("output", "").strip()
+    
+    if not instruction:
+        logger.warning("Empty instruction field detected in dataset example.")
+        
+    if inp:
         text = ALPACA_TEMPLATE.format(
-            instruction=example["instruction"],
-            input=example["input"],
-            output=example["output"],
+            instruction=instruction,
+            input=inp,
+            output=output,
         )
     else:
-        # Sem input adicional — usar template simplificado
         text = ALPACA_TEMPLATE_NO_INPUT.format(
-            instruction=example["instruction"],
-            output=example["output"],
+            instruction=instruction,
+            output=output,
         )
-    
+        
     return {"text": text}
 
 
@@ -105,45 +90,29 @@ def format_chat_prompt(
     tokenizer: Any,
 ) -> Dict[str, str]:
     """
-    Formata um exemplo usando o chat template nativo do tokenizador.
-    
-    CONCEITO EDUCACIONAL:
-        Cada modelo tem um "chat template" específico que define como
-        delimitar mensagens de diferentes roles (system, user, assistant).
-        
-        Exemplos de chat templates:
-        - Qwen2.5: <|im_start|>user\n{msg}<|im_end|>
-        - Llama 3: <|begin_of_text|><|start_header_id|>user<|end_header_id|>
-        - Phi-3: <|user|>\n{msg}<|end|>
-        
-        Usar o template CORRETO é CRÍTICO. Um template errado pode
-        degradar a performance do modelo em até 30% (mesmo com bons dados).
-        
-        O tokenizer.apply_chat_template() faz isso automaticamente.
+    Formats an instruction sample utilizing the native chat template of the tokenizer.
     
     Args:
-        example: Dicionário com 'instruction', 'input', 'output'.
-        tokenizer: Tokenizador do modelo com chat_template configurado.
-    
+        example: Input dictionary with keys 'instruction', 'input', and 'output'.
+        tokenizer: Tokenizer object with a defined chat_template schema.
+        
     Returns:
-        Dicionário com chave 'text' contendo o prompt formatado.
+        Dict: Dictionary with a single 'text' key containing the parsed template string.
     """
-    # Construir a mensagem do usuário
-    user_message = example["instruction"]
-    if example.get("input", "").strip():
-        user_message += f"\n\nInput: {example['input']}"
-    
-    # Estrutura de mensagens no formato OpenAI/HuggingFace
+    user_message = example.get("instruction", "")
+    inp = example.get("input", "").strip()
+    if inp:
+        user_message += f"\n\nInput: {inp}"
+        
     messages = [
         {"role": "user", "content": user_message},
-        {"role": "assistant", "content": example["output"]},
+        {"role": "assistant", "content": example.get("output", "")},
     ]
     
-    # apply_chat_template converte para o formato nativo do modelo
     text = tokenizer.apply_chat_template(
         messages,
-        tokenize=False,      # Retornar string, não tokens
-        add_generation_prompt=False,  # Não adicionar prompt de geração
+        tokenize=False,
+        add_generation_prompt=False,
     )
     
     return {"text": text}
@@ -159,57 +128,29 @@ def load_and_prepare_dataset(
     tokenizer: Any = None,
 ) -> Tuple[Dataset, Dataset]:
     """
-    Carrega e prepara um dataset para fine-tuning de SLMs.
-    
-    PIPELINE DE PREPARAÇÃO:
-        1. Carregar dataset do Hugging Face Hub
-        2. Limitar número de amostras (para testes rápidos)
-        3. Dividir em treino/validação
-        4. Formatar prompts no template escolhido
-        5. Filtrar exemplos vazios ou muito curtos
-    
-    CONCEITO EDUCACIONAL:
-        A divisão treino/validação é ESSENCIAL para detectar overfitting.
-        Se o loss de treino diminui mas o loss de validação sobe,
-        o modelo está memorizando em vez de aprender padrões gerais.
-        
-        Para SFT com poucos dados (< 10k exemplos), use 10% para validação.
-        Para datasets maiores, 5% é suficiente.
+    Loads a dataset from the Hugging Face Hub, performs shuffling, splits it,
+    formats input data using prompt templates, and filters out short records.
     
     Args:
-        dataset_name: Nome do dataset no Hugging Face Hub.
-        split: Divisão do dataset a carregar.
-        max_samples: Número máximo de amostras (None = usar tudo).
-        test_size: Fração para validação (0.1 = 10%).
-        seed: Semente aleatória para reprodutibilidade.
-        format_fn: Função de formatação ("alpaca" ou "chat").
-        tokenizer: Tokenizador (obrigatório se format_fn="chat").
-    
+        dataset_name: Registry identifier for HF datasets.
+        split: Split sequence identifier.
+        max_samples: Limit count for training subsets.
+        test_size: Evaluation split ratio (e.g. 0.1 for 10%).
+        seed: Random state seed.
+        format_fn: Formatting routine option ('alpaca' or 'chat').
+        tokenizer: Tokenizer instance (required for 'chat' templates).
+        
     Returns:
-        Tupla (train_dataset, eval_dataset) já formatados.
-    
-    Raises:
-        ValueError: Se format_fn="chat" e tokenizer não for fornecido.
+        Tuple[Dataset, Dataset]: Formatted training and validation dataset splits.
     """
-    logger.info(f"Carregando dataset: {dataset_name} (split={split})")
-    
-    # --------------------------------------------------------------------------
-    # 1. CARREGAR DATASET
-    # --------------------------------------------------------------------------
+    logger.info(f"Loading dataset: {dataset_name} (split={split})")
     dataset = load_dataset(dataset_name, split=split)
-    logger.info(f"Dataset carregado: {len(dataset)} exemplos")
+    logger.info(f"Loaded dataset size: {len(dataset)} examples")
     
-    # --------------------------------------------------------------------------
-    # 2. LIMITAR AMOSTRAS (para testes rápidos ou hardware limitado)
-    # --------------------------------------------------------------------------
     if max_samples is not None and max_samples < len(dataset):
         dataset = dataset.shuffle(seed=seed).select(range(max_samples))
-        logger.info(f"Dataset limitado a {max_samples} exemplos")
-    
-    # --------------------------------------------------------------------------
-    # 3. DIVIDIR EM TREINO E VALIDAÇÃO
-    # --------------------------------------------------------------------------
-    # A divisão é estratificada e reprodutível graças à seed
+        logger.info(f"Dataset limited to {max_samples} examples.")
+        
     split_dataset = dataset.train_test_split(
         test_size=test_size,
         seed=seed,
@@ -217,50 +158,35 @@ def load_and_prepare_dataset(
     train_dataset = split_dataset["train"]
     eval_dataset = split_dataset["test"]
     
-    logger.info(
-        f"Divisão: {len(train_dataset)} treino | {len(eval_dataset)} validação"
-    )
+    logger.info(f"Split breakdown: {len(train_dataset)} training | {len(eval_dataset)} evaluation")
     
-    # --------------------------------------------------------------------------
-    # 4. FORMATAR PROMPTS
-    # --------------------------------------------------------------------------
     if format_fn == "chat":
         if tokenizer is None:
-            raise ValueError(
-                "Tokenizer é obrigatório quando format_fn='chat'. "
-                "Passe o tokenizer como argumento."
-            )
+            raise ValueError("Tokenizer instance must be supplied when format_fn is set to 'chat'.")
         fmt_function = lambda ex: format_chat_prompt(ex, tokenizer)
     else:
         fmt_function = format_alpaca_prompt
-    
+        
     train_dataset = train_dataset.map(
         fmt_function,
-        desc="Formatando dataset de treino",
+        desc="Formatting training dataset splits",
     )
     eval_dataset = eval_dataset.map(
         fmt_function,
-        desc="Formatando dataset de validação",
+        desc="Formatting evaluation dataset splits",
     )
     
-    # --------------------------------------------------------------------------
-    # 5. FILTRAR EXEMPLOS INVÁLIDOS
-    # --------------------------------------------------------------------------
-    # Remover exemplos onde o texto formatado ficou muito curto
-    min_length = 20  # Mínimo de caracteres
+    min_length = 20
     train_dataset = train_dataset.filter(
-        lambda x: len(x["text"]) >= min_length,
-        desc="Filtrando exemplos curtos (treino)",
+        lambda x: len(x.get("text", "")) >= min_length,
+        desc="Filtering short records (train)",
     )
     eval_dataset = eval_dataset.filter(
-        lambda x: len(x["text"]) >= min_length,
-        desc="Filtrando exemplos curtos (validação)",
+        lambda x: len(x.get("text", "")) >= min_length,
+        desc="Filtering short records (eval)",
     )
     
-    logger.info(
-        f"Após filtragem: {len(train_dataset)} treino | {len(eval_dataset)} validação"
-    )
-    
+    logger.info(f"Post-filtering count: {len(train_dataset)} training | {len(eval_dataset)} evaluation")
     return train_dataset, eval_dataset
 
 
@@ -270,78 +196,58 @@ def create_preference_dataset(
     seed: int = 42,
 ) -> Dataset:
     """
-    Carrega e formata um dataset de preferências para DPO.
-    
-    CONCEITO EDUCACIONAL:
-        O DPO (Direct Preference Optimization) requer dados no formato:
-        - prompt: A instrução/pergunta
-        - chosen: A resposta PREFERIDA (melhor qualidade)
-        - rejected: A resposta REJEITADA (pior qualidade)
-        
-        O modelo aprende a aumentar a probabilidade de gerar respostas
-        similares às "chosen" e diminuir para as "rejected".
-        
-        Fontes comuns de dados de preferência:
-        1. UltraFeedback: Pares gerados por múltiplos LLMs e ranqueados
-        2. Anthropic HH-RLHF: Pares de humanos (helpful vs harmful)
-        3. Dados próprios: Anotação manual ou com LLM como juiz
+    Loads preference dataset pairs containing prompt, chosen, and rejected options.
     
     Args:
-        dataset_name: Nome do dataset de preferências.
-        max_samples: Número máximo de exemplos.
-        seed: Semente aleatória.
-    
+        dataset_name: Registry identifier for HF preference datasets.
+        max_samples: Sample limit.
+        seed: Random state seed.
+        
     Returns:
-        Dataset com colunas 'prompt', 'chosen', 'rejected'.
+        Dataset: Loaded preference dataset instance.
     """
-    logger.info(f"Carregando dataset de preferências: {dataset_name}")
-    
+    logger.info(f"Loading preference feedback dataset: {dataset_name}")
     try:
         dataset = load_dataset(dataset_name, split="train")
     except Exception as e:
         logger.warning(
-            f"Erro ao carregar {dataset_name}: {e}. "
-            f"Usando dataset sintético de demonstração."
+            f"Failed loading {dataset_name} ({e}). "
+            "Falling back to synthetic demonstration preference dataset."
         )
-        # Fallback: criar dataset sintético para demonstração
         dataset = _create_synthetic_preference_data()
-    
+        
     if max_samples is not None and max_samples < len(dataset):
         dataset = dataset.shuffle(seed=seed).select(range(max_samples))
-    
-    logger.info(f"Dataset de preferências: {len(dataset)} exemplos")
+        
+    logger.info(f"Preference dataset size: {len(dataset)} examples")
     return dataset
 
 
 def _create_synthetic_preference_data() -> Dataset:
     """
-    Cria um dataset sintético de preferências para demonstração.
-    
-    NOTA: Este dataset é apenas para fins educacionais e de teste.
-    Em produção, use dados reais anotados ou gerados por LLMs.
+    Builds a synthetic validation preference dataset for testing or local run fallback scenarios.
     """
     data = {
         "prompt": [
-            "Explique o que é machine learning em termos simples.",
-            "Qual a diferença entre Python e JavaScript?",
-            "Como funciona o mecanismo de atenção em Transformers?",
-            "O que é overfitting e como evitá-lo?",
-            "Explique gradient descent de forma intuitiva.",
+            "Explain what machine learning is in simple terms.",
+            "What is the difference between Python and JavaScript?",
+            "How does the attention mechanism work in Transformers?",
+            "What is overfitting and how can it be avoided?",
+            "Explain gradient descent intuitively.",
         ],
         "chosen": [
-            "Machine learning é uma área da IA onde computadores aprendem padrões a partir de dados, sem serem explicitamente programados para cada tarefa. Pense nisso como ensinar um computador pelo exemplo, não pela regra.",
-            "Python é usado principalmente para backend, ciência de dados e IA, com sintaxe simples e legível. JavaScript domina o desenvolvimento web (frontend e backend via Node.js), com execução assíncrona nativa.",
-            "O mecanismo de atenção permite que o modelo 'olhe' para todas as palavras de uma frase simultaneamente e decida quais são mais relevantes para cada palavra. É como ler uma frase e saber que 'ele' se refere a 'João' porque ambos estão relacionados.",
-            "Overfitting ocorre quando o modelo memoriza os dados de treinamento em vez de aprender padrões gerais. Para evitá-lo: use mais dados, aplique regularização (dropout, weight decay), faça validação cruzada e pare o treinamento cedo (early stopping).",
-            "Imagine que você está no topo de uma montanha com nevoeiro e precisa descer ao vale. Gradient descent funciona assim: a cada passo, você sente a inclinação do terreno e caminha na direção mais íngreme para baixo. O tamanho do passo é o learning rate.",
+            "Machine learning is a subset of AI where computers learn patterns directly from data, rather than being explicitly programmed with rules. Think of it as teaching a computer through examples.",
+            "Python is widely used for backend, data science, and AI development, with a simple syntax. JavaScript is the standard language of web development (frontend and backend via Node.js).",
+            "The attention mechanism allows a model to look at all words in a sequence simultaneously and weigh which words are most relevant. For example, it associates 'it' with 'cat' instead of 'mat'.",
+            "Overfitting occurs when a model memorizes training noise instead of general patterns. It can be prevented using more data, regularizations (dropout, weight decay), and early stopping.",
+            "Imagine you are lost in a foggy mountain and need to find the valley. Gradient descent is like feeling the steepness under your feet and taking a step downhill iteratively. The step size is the learning rate.",
         ],
         "rejected": [
-            "Machine learning é quando o computador aprende sozinho.",
-            "Python e JavaScript são linguagens de programação diferentes.",
-            "Atenção é uma técnica usada em redes neurais.",
-            "Overfitting é ruim. Use mais dados.",
-            "Gradient descent é um algoritmo de otimização que minimiza a função de perda.",
+            "Machine learning is when computers learn on their own.",
+            "Python and JavaScript are different coding languages.",
+            "Attention is a neural network weighting technique.",
+            "Overfitting is bad. Use more training data.",
+            "Gradient descent is an optimization algorithm that minimizes the loss function.",
         ],
     }
-    
     return Dataset.from_dict(data)
