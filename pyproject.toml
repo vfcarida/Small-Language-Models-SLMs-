@@ -101,6 +101,9 @@ slm-serve = "src.module_09_serving.openai_server:main"
 slm-cayley = "src.module_05_quantization.cayley_kv_quant:main"
 slm-speculative = "src.module_10_speculative.speculative_decoding:main"
 slm-grpo = "src.module_11_rlvr_grpo.grpo_trainer:main"
+slm-hybrid-ssm = "src.module_12_hybrid_ssm.hybrid_ssm_block:main"
+slm-swarm = "src.module_13_agentic_swarms.slm_swarm:main"
+slm-dp-lora = "src.module_14_federated_dp_lora.dp_federated_lora:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

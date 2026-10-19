@@ -75,6 +75,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **09** | [`docs/09_Edge_Export_and_OpenAI_Serving.md`](docs/09_Edge_Export_and_OpenAI_Serving.md) | [`src/module_09_serving/`](src/module_09_serving/) | **Edge Runtime Exporter** (`GGUF` / `llama.cpp` / `Ollama`, `vLLM` PagedAttention validator, TorchScript/`ONNX` parity exporter) and **OpenAI `/v1/chat/completions` + MCP JSON-RPC 2.0 Gateway**. | `Stable` |
 | **10** | [`docs/10_Speculative_Decoding.md`](docs/10_Speculative_Decoding.md) | [`src/module_10_speculative/`](src/module_10_speculative/) | **Lossless Speculative Decoding** (`speculative_decoding_step`), residual distribution normalization, marginal identity verifier, speedup law, and **Medusa Multi-Horizon Draft Heads**. | `Stable` |
 | **11** | [`docs/11_RLVR_and_GRPO.md`](docs/11_RLVR_and_GRPO.md) | [`src/module_11_rlvr_grpo/`](src/module_11_rlvr_grpo/) | **Reinforcement Learning with Verifiable Rewards (`RLVR`) & Critic-Free `GRPO`** (`compute_grpo_loss`, Schulman KL, and deterministic `<think>/<answer>`, math & JSON verifiers). | `Stable` |
+| **12** | [`docs/12_Hybrid_Mamba_Transformer_SLMs.md`](docs/12_Hybrid_Mamba_Transformer_SLMs.md) | [`src/module_12_hybrid_ssm/`](src/module_12_hybrid_ssm/) | **State-Space & Hybrid Mamba-Transformer SLMs** (`SelectiveSSMBlock` with $O(1)$-memory `step_recurrent`, `HybridMambaAttentionBlock`, and 32k context memory scaling profiler). | `Stable` |
+| **13** | [`docs/13_Multi_Agent_SLM_Swarms.md`](docs/13_Multi_Agent_SLM_Swarms.md) | [`src/module_13_agentic_swarms/`](src/module_13_agentic_swarms/) | **Multi-Agent Collaborative SLM Swarms & Debate Verification** (`MultiLoRASwarmBackbone`, `confidence_weighted_vote`, and 2-round Generator-Critic-Verifier debate with `PIIGuardrail`). | `Stable` |
+| **14** | [`docs/14_Federated_and_DP_LoRA.md`](docs/14_Federated_and_DP_LoRA.md) | [`src/module_14_federated_dp_lora/`](src/module_14_federated_dp_lora/) | **Federated & Differential-Privacy LoRA Aggregation** (`DP-SGD` per-sample $L_2$ clipping + calibrated Gaussian noise, `FFA-LoRA`, and `SVD-Exact` cross-term-free aggregation). | `Stable` |
 
 ---
 
@@ -150,6 +153,11 @@ python src/module_09_serving/openai_server.py --smoke-test
 python src/module_05_quantization/cayley_kv_quant.py
 python src/module_10_speculative/speculative_decoding.py
 python src/module_11_rlvr_grpo/grpo_trainer.py
+
+# Run Hybrid Mamba-Transformer SSM, Multi-Agent SLM Swarms & Federated DP-LoRA:
+python src/module_12_hybrid_ssm/hybrid_ssm_block.py
+python src/module_13_agentic_swarms/slm_swarm.py
+python src/module_14_federated_dp_lora/dp_federated_lora.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -182,7 +190,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All 9 modules and pipeline utilities are verified by an automated `pytest` suite covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard rotation invariance, DPO/SimPO reward margins, and AI TRiSM PII routing guardrails:
+All **15 modules (`00`–`14`)** and pipeline utilities are verified by an automated **84-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, and DP-SGD + FFA-LoRA aggregation:
 
 ```bash
 pytest -v
@@ -206,6 +214,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 10. **Meng et al. (Princeton & UVA, NeurIPS 2024).** *"SimPO: Simple Preference Optimization with a Reference-Free Reward."* [`arXiv:2405.14734`](https://arxiv.org/abs/2405.14734)
 11. **Rafailov et al. (Stanford, NeurIPS 2023).** *"Direct Preference Optimization: Your Language Model is Secretly a Reward Model."* [`arXiv:2305.18290`](https://arxiv.org/abs/2305.18290)
 12. **Dettmers et al. (UW, NeurIPS 2023).** *"QLoRA: Efficient Finetuning of Quantized LLMs."* [`arXiv:2305.14314`](https://arxiv.org/abs/2305.14314)
+13. **Gu & Dao (CMU & Princeton, COLM 2024).** *"Mamba: Linear-Time Sequence Modeling with Selective State Spaces."* [`arXiv:2312.00752`](https://arxiv.org/abs/2312.00752)
+14. **Dong et al. (NVIDIA Research, ICLR 2025).** *"Hymba: A Hybrid-head Architecture for Small Language Models."* [`arXiv:2411.13676`](https://arxiv.org/abs/2411.13676)
+15. **Sun et al. (ICLR 2024).** *"Improving LoRA in Privacy-preserving Federated Learning (FFA-LoRA)."* [`arXiv:2403.12313`](https://arxiv.org/abs/2403.12313)
 
 ---
 

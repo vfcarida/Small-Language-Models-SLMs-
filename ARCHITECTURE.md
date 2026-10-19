@@ -63,7 +63,10 @@ Small-Language-Models-SLMs-/
 │   ├── 08_Hybrid_Routing_and_Guardrails.md # Calibrated SLM-LLM routing, RouteLLM & AI TRiSM PII guardrails
 │   ├── 09_Edge_Export_and_OpenAI_Serving.md # GGUF/vLLM/ONNX edge export & OpenAI/MCP serving gateway
 │   ├── 10_Speculative_Decoding.md       # Lossless speculative rejection sampling & Medusa draft heads
-│   └── 11_RLVR_and_GRPO.md              # Critic-free GRPO & deterministic verifiable reward oracles
+│   ├── 11_RLVR_and_GRPO.md              # Critic-free GRPO & deterministic verifiable reward oracles
+│   ├── 12_Hybrid_Mamba_Transformer_SLMs.md # Selective SSM O(1) scan & Hybrid Mamba-Attention fusion
+│   ├── 13_Multi_Agent_SLM_Swarms.md     # Shared-backbone Multi-LoRA swarms & confidence-weighted debate
+│   └── 14_Federated_and_DP_LoRA.md      # DP-SGD per-sample clipping & cross-term-free FFA-LoRA
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -87,7 +90,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_08_routing/               # hybrid_router.py, router_calibration.py
 │   ├── module_09_serving/               # edge_exporter.py, openai_server.py
 │   ├── module_10_speculative/           # speculative_decoding.py
-│   └── module_11_rlvr_grpo/             # grpo_trainer.py
+│   ├── module_11_rlvr_grpo/             # grpo_trainer.py
+│   ├── module_12_hybrid_ssm/            # hybrid_ssm_block.py
+│   ├── module_13_agentic_swarms/        # slm_swarm.py
+│   └── module_14_federated_dp_lora/     # dp_federated_lora.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -113,3 +119,7 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 ### 3.4 Preference Optimization & Hybrid Routing (`module_06_alignment` & `module_08_routing`)
 - **Reference-Free SimPO Margin:** Eliminates reference model memory overhead via length-normalized reward $r_{\text{SimPO}}(x, y) = \frac{\beta}{|y|} \log \pi_\theta(y \mid x)$ and margin $\gamma \ge 0$.
 - **AI TRiSM Data-Sovereignty Invariant:** When `enforce_local_on_pii=True`, any query matching `PIIGuardrail` is strictly prevented from routing to `RouteTarget.CLOUD_LLM`.
+
+### 3.5 Hybrid SSM Recurrence, Agentic Swarms & DP-Federated LoRA (`module_12` – `module_14`)
+- **Selective SSM Parallel-Recurrent Parity (`module_12_hybrid_ssm`):** Full-sequence ZOH causal scan (`SelectiveSSMBlock.forward`) and token-by-token $O(1)$-memory decoding (`step_recurrent`) produce identical outputs ($\|\mathbf{y}_{\text{parallel}} - \mathbf{y}_{\text{recurrent}}\|_\infty < 10^{-5}$).
+- **FFA-LoRA Cross-Term Elimination (`module_14_federated_dp_lora`):** By freezing shared projection $\mathbf{A}_0$ across $K$ clients and aggregating only $\mathbf{B}_k$ under $(\epsilon, \delta)$-DP-SGD, $\left(\sum_k p_k \mathbf{B}_k\right)\mathbf{A}_0 = \sum_k p_k (\mathbf{B}_k \mathbf{A}_0)$ holds with zero cross-term Frobenius error.

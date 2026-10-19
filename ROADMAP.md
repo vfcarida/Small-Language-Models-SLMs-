@@ -40,16 +40,17 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 09: Edge Runtime Export & OpenAI/MCP Serving (`src/module_09_serving/`)** | GGUF / `llama.cpp` + Ollama `Modelfile` planner, `vLLM` PagedAttention validator, TorchScript/ONNX graph exporter (`edge_exporter.py`), and OpenAI `/v1/chat/completions` + Model Context Protocol (MCP) JSON-RPC 2.0 gateway (`openai_server.py`). | Kwon et al. (SOSP 2023, PagedAttention/vLLM); Anthropic MCP Specification | **`Stable`** | `tests/test_serving_and_export.py` |
 | **Module 10: Lossless Speculative Decoding & Medusa Heads (`src/module_10_speculative/`)** | Exact speculative rejection sampling (`speculative_decoding_step`), residual distribution normalization (`compute_residual_distribution`), marginal identity verifier, speedup law, and `MedusaDraftHead` (`speculative_decoding.py`). | Leviathan et al. (ICML 2023, `arXiv:2211.17192`); Chen et al. (`arXiv:2302.01318`); Cai et al. (ICML 2024, `arXiv:2401.10774`) | **`Stable`** | `tests/test_speculative_decoding.py` |
 | **Module 11: RL with Verifiable Rewards — RLVR & GRPO (`src/module_11_rlvr_grpo/`)** | Critic-free Group Relative Policy Optimization (`compute_grpo_loss`, `compute_group_advantages`), Schulman's unbiased non-negative KL estimator, and deterministic format/math/JSON verifiers (`VerifiableRewardOracle`, `grpo_trainer.py`). | DeepSeek-AI (`arXiv:2501.12948`); Shao et al. (`arXiv:2402.03300`) | **`Stable`** | `tests/test_rlvr_grpo.py` |
+| **Module 12: State-Space & Hybrid Mamba-Transformer SLMs (`src/module_12_hybrid_ssm/`)** | Causal Selective State-Space Scan (`selective_ssm_scan`), `SelectiveSSMBlock` with $O(1)$-memory `step_recurrent`, parallel `HybridMambaAttentionBlock`, and 32k context memory scaling profiler (`hybrid_ssm_block.py`). | Gu & Dao (COLM 2024, `arXiv:2312.00752`); Dao & Gu (ICML 2024, `arXiv:2405.21060`); Dong et al. (ICLR 2025, `arXiv:2411.13676`) | **`Stable`** | `tests/test_hybrid_ssm.py` |
+| **Module 13: Multi-Agent Collaborative SLM Swarms (`src/module_13_agentic_swarms/`)** | Shared-backbone Multi-LoRA hot-swapping (`MultiLoRASwarmBackbone`), confidence-weighted consensus voting (`confidence_weighted_vote`), and 2-round Generator-Critic-Verifier debate (`SLMAgentSwarm`, `slm_swarm.py`). | Belcák et al. (`arXiv:2506.02153`); Du et al. (ICML 2024, `arXiv:2305.14325`); Wang et al. (ICLR 2023) | **`Stable`** | `tests/test_agentic_swarms.py` |
+| **Module 14: Federated & Differential-Privacy LoRA (`src/module_14_federated_dp_lora/`)** | $(\epsilon, \delta)$-DP Gaussian mechanism noise calibration (`compute_gaussian_dp_sigma`), per-sample $L_2$ gradient clipping (`clip_and_noise_gradients`), and cross-term-free `FFA-LoRA` & `SVD-Exact` aggregation (`dp_federated_lora.py`). | Abadi et al. (CCS 2016, `arXiv:1607.00133`); Yu et al. (ICLR 2022); Sun et al. (ICLR 2024, `arXiv:2403.12313`) | **`Stable`** | `tests/test_federated_dp_lora.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — State-Space & Hybrid Mamba-Transformer SLMs (`Planned`):**
-   Linear-time $O(L)$ selective state-space layers interleaved with Grouped-Query Attention (`Jamba` / `Zamba` / `Hymba` style) for constant-memory infinite-context edge streaming.
-2. **Track H2 — Multi-Agent Collaborative SLM Swarms (`Planned`):**
-   Decentralized verification and debate protocols across specialized $<2\text{B}$ SLM micro-agents (Coder, Critic, Formal Verifier, Security Auditor) coordinated via MCP.
-3. **Track H3 — Federated & Differential-Privacy LoRA Aggregation (`Planned`):**
-   On-device private LoRA adaptation (`DP-SGD` + `FedAvg` adapter merging) enabling enterprise fleet customization without centralizing raw user telemetry.
-
-
+1. **Track H1 — Ternary `1.58-Bit` Native SLMs (`BitNet b1.58` & Sub-Bit LUT Kernels) (`Planned`):**
+   Quantization-Aware Training (QAT) with ternary weights $\{-1, 0, +1\}$ (`absmean` weight quantization + `absmax` `INT8` activation quantization) replacing floating-point matrix multiplications with pure integer additions on edge CPUs/NPUs.
+2. **Track H2 — Latent-Space Continuous Reasoning (`Coconut` / Recurrent Depth SLMs) (`Planned`):**
+   Continuous hidden-state thought recurrence before discrete token emission (`Hao et al., Meta FAIR 2024`; `Geiping et al., 2025`) to compress verbose Chain-of-Thought token chains by $3\times-5\times$.
+3. **Track H3 — Hardware-Aware Neural Architecture Search & Layer-Adaptive Mixed-Precision (`LAMP`) (`Planned`):**
+   Automated Hessian/sensitivity-guided bit-width allocation (`INT2` / `INT3` / `INT4` / `FP8`) per Transformer/SSM layer subject to strict device SRAM and latency budgets.
