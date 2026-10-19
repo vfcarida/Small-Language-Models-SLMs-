@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Small Language Models (SLMs) Masterclass: Production-Grade Compression, Alignment, and Hybrid Routing"
+message: "If you use this software or reference architecture in your research or enterprise systems, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: "Caridá"
+    given-names: "Vinicius"
+    alias: "vfcarida"
+repository-code: "https://github.com/vfcarida/Small-Language-Models-SLMs-"
+url: "https://github.com/vfcarida/Small-Language-Models-SLMs-"
+license: MIT
+version: "1.1.0"
+date-released: "2026-10-19"
+keywords:
+  - small-language-models
+  - knowledge-distillation
+  - wanda-pruning
+  - awq-quantization
+  - direct-preference-optimization
+  - simpo
+  - llm-routing
+  - edge-ai

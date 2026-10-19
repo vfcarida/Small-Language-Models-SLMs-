@@ -1,1 +1,1 @@
-# Módulo 00: Fundamentos de NLP e Transformers
+"""Module 00: Transformer Fundamentals, Tokenization (BPE), and Self-Attention / GQA Math."""

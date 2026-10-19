@@ -1,62 +1,53 @@
 # ==============================================================================
-# DEPENDÊNCIAS — Small Language Models (SLM) Masterclass
+# DEPENDENCIES — Small Language Models (SLMs) Masterclass
 # ==============================================================================
-# Organizado por categoria funcional. Cada dependência é justificada.
-# Para instalação completa com GPU: pip install -r requirements.txt
-# Para instalação mínima (CPU): pip install -e .
+# Organized by functional domain.
+# For full GPU installation: pip install -r requirements.txt
+# For lightweight CPU / developer installation: pip install -e ".[dev]"
 # ==============================================================================
 
-# --- Core: PyTorch e Hugging Face Ecosystem ---
-# PyTorch 2.3+ inclui torch.compile e SDPA (Scaled Dot-Product Attention)
+# --- Core: PyTorch & Hugging Face Ecosystem ---
+# PyTorch 2.3+ includes torch.compile and native Scaled Dot-Product Attention (SDPA)
 torch>=2.3.0
-transformers>=4.43.0       # Modelos de linguagem (Qwen, Llama, Phi, Gemma)
-datasets>=2.20.0           # Carregamento de datasets do Hugging Face Hub
-accelerate>=0.32.0         # Distribuição multi-GPU e mixed precision
-tokenizers>=0.19.0         # Tokenizadores rápidos em Rust (backend do HF)
+transformers>=4.43.0       # Pre-trained causal language models (Qwen, Llama, Phi, Gemma)
+datasets>=2.20.0           # Hugging Face Hub dataset loading and streaming
+accelerate>=0.32.0         # Multi-GPU distribution and mixed-precision orchestration
+tokenizers>=0.19.0         # Fast Rust-backed subword tokenizers
 
 # --- PEFT: Parameter-Efficient Fine-Tuning ---
-# LoRA, QLoRA, AdaLoRA e outros adaptadores eficientes
-peft>=0.12.0               # Biblioteca principal de PEFT
-bitsandbytes>=0.43.0       # Quantização INT8/NF4 para QLoRA (Dettmers et al.)
+peft>=0.12.0               # Low-Rank Adaptation (LoRA, QLoRA, DoRA)
+bitsandbytes>=0.43.0       # INT8 and 4-bit NormalFloat (NF4) quantization (Dettmers et al., 2023)
 
 # --- TRL: Transformer Reinforcement Learning ---
-# SFTTrainer, GKDTrainer, DPOTrainer — pipelines de treinamento modernos
+# SFTTrainer, GKDTrainer, DPOTrainer — post-training and alignment pipelines
 trl>=0.9.6
 
-# --- Quantização Avançada ---
-# AWQ e GPTQ para compressão de modelos a INT4
-autoawq>=0.2.6             # Activation-Aware Weight Quantization (Lin et al.)
-# auto-gptq>=0.7.0         # Descomentar se precisar de GPTQ
+# --- Activation-Aware Quantization ---
+autoawq>=0.2.6             # Activation-Aware Weight Quantization (Lin et al., MLSys 2024)
+# auto-gptq>=0.7.0         # Optional: Uncomment for Hessian-based GPTQ quantization
 
-# --- Atenção Otimizada ---
-# Flash Attention 2 para treinamento/inferência mais rápida
-# NOTA: Requer compilação com CUDA toolkit. Pode falhar em Windows.
-# flash-attn>=2.5.8        # Descomentar em ambientes Linux com CUDA
+# --- Hardware-Accelerated Attention (Optional) ---
+# Requires CUDA toolkit compilation on Linux
+# flash-attn>=2.5.8        # Optional: Uncomment on Linux CUDA hosts
 
-# --- Avaliação e Benchmarks ---
-lm-eval>=0.4.3             # EleutherAI Evaluation Harness (MMLU, GSM8K, etc.)
+# --- Evaluation & Benchmarks ---
+lm-eval>=0.4.3             # EleutherAI Language Model Evaluation Harness (MMLU, GSM8K)
 
-# --- Serving (Opcional) ---
-# vLLM para servir modelos com alta performance
-# vllm>=0.5.0              # Descomentar em ambientes de produção Linux
+# --- High-Throughput Serving (Optional) ---
+# vllm>=0.5.0              # Optional: Uncomment on Linux GPU production servers
 
-# --- Visualização e Análise ---
-matplotlib>=3.9.0          # Gráficos e plots
-seaborn>=0.13.2            # Visualizações estatísticas
-numpy>=1.26.0              # Computação numérica
-scipy>=1.13.0              # Funções científicas (KL divergence, etc.)
+# --- Scientific Computing & Visualization ---
+matplotlib>=3.9.0          # Attention heatmaps, loss curves, and radar plots
+seaborn>=0.13.2            # Statistical visualizations
+numpy>=1.26.0              # Numerical array computing
+scipy>=1.13.0              # Information-theoretic and statistical utilities
 
-# --- Utilitários ---
-pyyaml>=6.0                # Leitura de arquivos YAML (configs)
-tqdm>=4.66.0               # Barras de progresso
-safetensors>=0.4.0         # Formato seguro para salvar tensores
+# --- Configuration, Networking & Serialization ---
+pyyaml>=6.0                # Centralized YAML configuration parsing
+tqdm>=4.66.0               # Progress telemetry
+safetensors>=0.4.0         # Zero-copy, pickle-free safe tensor serialization
+requests>=2.31.0           # HTTP client for remote vLLM teacher oracle
 
-# --- Logging e Tracking (Opcional) ---
-# wandb>=0.17.0            # Weights & Biases para tracking de experimentos
-# tensorboard>=2.17.0      # TensorBoard para visualização de métricas
-
-# --- Desenvolvimento (Opcional) ---
-# pytest>=8.0              # Framework de testes
-# pytest-cov>=5.0          # Cobertura de testes
-# black>=24.0              # Formatação de código
-# isort>=5.13              # Ordenação de imports
+# --- Quality Assurance & Testing ---
+pytest>=8.0                # Automated unit and algorithmic verification suite
+pytest-cov>=5.0            # Test coverage instrumentation

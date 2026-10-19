@@ -64,7 +64,7 @@ def load_model(
             - float16 (FP16): Standard GPU float, 2 bytes/param. 1.5B model ~ 3 GB VRAM.
               ⚠️ May cause numerical instability (overflow in exponential layers).
             - bfloat16 (BF16): 2 bytes/param, matching exponent dynamic range of FP32.
-              ✅ Recommended for modern architectures (prevines NaN values).
+              ✅ Recommended for modern architectures (prevents NaN values).
               
     Args:
         model_id: Model registry identifier.

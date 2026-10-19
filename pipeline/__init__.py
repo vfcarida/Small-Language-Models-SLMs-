@@ -1,1 +1,1 @@
-# Pipeline de entrega end-to-end
+"""End-to-end orchestration and automated technical report generation pipelines."""

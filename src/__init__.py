@@ -1,19 +1,23 @@
-# ==============================================================================
-# SLM Masterclass — Pacote Principal
-# ==============================================================================
-# Este pacote contém todos os módulos educacionais e de produção para
-# treinamento, compressão e deploy de Small Language Models (SLMs).
-#
-# Módulos disponíveis (em ordem crescente de complexidade):
-#   00 - Fundamentos: tokenização, embeddings, atenção
-#   01 - Inferência: carregar e usar SLMs
-#   02 - SFT: fine-tuning supervisionado com LoRA/QLoRA
-#   03 - Distillation: destilação de conhecimento (GKD)
-#   04 - Pruning: poda de parâmetros (Magnitude, Wanda)
-#   05 - Quantization: quantização numérica (AWQ, bitsandbytes)
-#   06 - Alignment: alinhamento com DPO
-#   07 - Evaluation: avaliação e benchmarks
-# ==============================================================================
+"""
+SLM Masterclass — Core Package
+==============================
 
-__version__ = "1.0.0"
-__author__ = "Vinicius"
+Production-grade reference toolkit and engineering playbook for training,
+distilling, pruning, quantizing, aligning, evaluating, and routing Small
+Language Models (SLMs).
+
+Progressive Architecture Modules:
+    - module_00_fundamentals: Tokenization (BPE) and Self-Attention / GQA KV-cache math
+    - module_01_inference: Autoregressive decoding strategies and TTFT/throughput profiling
+    - module_02_sft: Supervised Fine-Tuning with LoRA and 4-bit NormalFloat (QLoRA)
+    - module_03_distillation: On-Policy Generalized Knowledge Distillation (GKD & MiniLLM)
+    - module_04_pruning: Magnitude and Wanda Pruning (Per-Output Unstructured & 2:4 Semi-Structured)
+    - module_05_quantization: Activation-Aware Weight Quantization (AWQ) and BitsAndBytes NF4
+    - module_06_alignment: Preference Alignment via DPO and Reference-Free SimPO
+    - module_07_evaluation: Perplexity, Latency Telemetry, and EleutherAI LM-Eval Harness
+    - module_08_routing: Calibrated Hybrid SLM-LLM Routing, AI TRiSM PII Guardrails, and TCO/ROI
+"""
+
+__version__ = "1.1.0"
+__author__ = "Vinicius Caridá"
+__all__ = ["__version__", "__author__"]

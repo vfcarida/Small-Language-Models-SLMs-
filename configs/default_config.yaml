@@ -1,67 +1,56 @@
 # ==============================================================================
-# CONFIGURAÇÃO CENTRAL DE HIPERPARÂMETROS — SLM MASTERCLASS
+# CENTRALIZED HYPERPARAMETER CONFIGURATION — SLM MASTERCLASS
 # ==============================================================================
-# Este arquivo concentra todas as variáveis necessárias para treinar,
-# avaliar e fazer deploy dos modelos. Alterações feitas aqui refletem em
-# toda a pipeline (run_full_pipeline.py).
+# Single source of truth for model selection, dataset preparation, PEFT/LoRA,
+# QLoRA, SFT, On-Policy Knowledge Distillation (GKD), Wanda Pruning, AWQ
+# Quantization, DPO/SimPO Alignment, Evaluation, and Hybrid Routing.
 # ==============================================================================
 
 model:
-  # O modelo base que será treinado. Qwen2.5-1.5B oferece o melhor equilíbrio
-  # entre capacidade lógica e uso de VRAM (cabe perfeitamente em 8GB).
+  # Qwen2.5-1.5B provides an optimal Pareto balance between logical reasoning
+  # capability and VRAM footprint (fits comfortably within an 8GB GPU budget).
   base_model_id: "Qwen/Qwen2.5-1.5B"
-  torch_dtype: "bfloat16" # Recomendado para arquiteturas modernas (evita NaN)
+  torch_dtype: "bfloat16" # Prevents FP16 exponent overflow and NaN gradients
   device_map: "auto"
   trust_remote_code: true
 
 dataset:
-  # AJUSTE ESTRATÉGICO (IDIOMA):
-  # Originalmente "tatsu-lab/alpaca" (inglês). Trocamos para a versão da USP.
-  # Isso força o modelo a aprender o padrão de resposta e estilo no nosso idioma.
-  name: "turing-usp/alpaca-pt-br"
+  # Instruction-following dataset from the Hugging Face Hub
+  name: "tatsu-lab/alpaca"
   split: "train"
-  
-  # AJUSTE PARA TESTE RÁPIDO:
-  # Para treinar de verdade, deixe null ou 50000.
-  # Para testar se a pipeline roda sem quebrar a memória, altere para 200.
+  # Set to 5000 for balanced single-GPU training, or 200 for rapid smoke runs
   max_samples: 5000
   test_size: 0.1
   seed: 42
 
 lora:
-  # AJUSTE DE CAPACIDADE vs VELOCIDADE:
-  # r=8: Treino mais rápido, usa menos memória, bom para tarefas fáceis.
-  # r=16: O padrão ouro atual. Equilíbrio perfeito (Usado aqui).
-  # r=32: Aumenta a capacidade de aprendizado, mas dobra o tamanho do adaptador.
+  # Capacity vs. Memory Trade-off:
+  # r=8:  Minimal memory footprint for narrow domain tasks
+  # r=16: Production sweet spot for instruction tuning
+  # r=32: High adapter capacity for dense multi-task adaptation
   r: 16
-  lora_alpha: 32 # Regra geral: alpha deve ser 2x o valor do r
+  lora_alpha: 32 # Standard scaling factor: alpha = 2 * r
   lora_dropout: 0.05
   bias: "none"
-  # Dettmers (2023) provou que aplicar LoRA em todas as lineares ("all-linear") 
-  # iguala a performance do Full Fine-Tuning.
-  target_modules: "all-linear" 
+  # Dettmers et al. (2023) demonstrated that adapting all linear projections
+  # ("all-linear") matches full fine-tuning quality.
+  target_modules: "all-linear"
   task_type: "CAUSAL_LM"
 
 qlora:
   load_in_4bit: true
-  bnb_4bit_quant_type: "nf4" # NormalFloat4 (informacionalmente ótimo para pesos)
+  bnb_4bit_quant_type: "nf4" # NormalFloat4 (information-theoretically optimal for normal weights)
   bnb_4bit_use_double_quant: true
   bnb_4bit_compute_dtype: "bfloat16"
 
 sft:
   output_dir: "./results/sft_output"
   num_train_epochs: 3
-  
-  # AJUSTE DE HARDWARE (VRAM):
-  # Reduzimos o batch size por dispositivo de 4 para 2. Isso garante que o 
-  # modelo não dê erro de Out Of Memory (OOM) em placas com exatos 8GB.
+  # Per-device batch size of 2 prevents CUDA Out-Of-Memory (OOM) on 8GB VRAM GPUs
   per_device_train_batch_size: 2
   per_device_eval_batch_size: 2
-  
-  # Como reduzimos o batch acima, compensamos dobrando a acumulação de gradientes
-  # (de 4 para 8). O "batch real" continua sendo 16 (2 * 8), mantendo o loss estável.
+  # Gradient accumulation preserves an effective batch size of 16 (2 * 8)
   gradient_accumulation_steps: 8
-  
   learning_rate: 2.0e-4
   lr_scheduler_type: "cosine"
   warmup_ratio: 0.03
@@ -80,38 +69,49 @@ sft:
   greater_is_better: false
   report_to: "none"
   seed: 42
-  
-  # Ativar checkpointing economiza VRAM substancialmente, embora deixe o 
-  # forward pass um pouco mais lento.
   gradient_checkpointing: true
 
 distillation:
   teacher_model_id: "Qwen/Qwen2.5-7B-Instruct"
   temperature: 2.0
-  lmbda: 0.5
-  beta: 0.5
+  lmbda: 0.5   # On-policy student trajectory fraction (Agarwal et al., ICLR 2024)
+  beta: 0.5    # Generalized Jensen-Shannon Divergence interpolation coefficient
+  mode: "jsd"  # Options: "forward_kl", "reverse_kl" (MiniLLM), or "jsd" (GKD)
 
 pruning:
   sparsity_ratio: 0.5
+  sparsity_type: "unstructured" # Options: "unstructured" or "2:4" (NVIDIA semi-structured)
   num_calibration_samples: 32
 
 quantization:
   zero_point: true
   q_group_size: 128
   w_bit: 4
+  alpha: 0.5   # AWQ salient-channel activation-weight balance exponent
   version: "GEMM"
 
 dpo:
+  algorithm: "dpo" # Options: "dpo" (Rafailov et al., 2023) or "simpo" (Meng et al., 2024)
   num_train_epochs: 1
   per_device_train_batch_size: 2
   gradient_accumulation_steps: 4
-  learning_rate: 5.0e-7 # LR muito mais baixo que o SFT
+  learning_rate: 5.0e-7
   beta: 0.1
+  gamma: 0.5   # Target reward margin for reference-free SimPO
   max_length: 1024
   max_prompt_length: 512
 
+routing:
+  slm_model_id: "Qwen/Qwen2.5-1.5B-Instruct-AWQ"
+  llm_model_id: "meta-llama/Llama-3.1-70B-Instruct"
+  confidence_threshold: 0.65
+  complexity_threshold: 0.60
+  enforce_local_on_pii: true
+  slm_cost_per_1m_tokens_usd: 0.08
+  llm_cost_per_1m_tokens_usd: 2.40
+
 evaluation:
   output_dir: "./results/eval_output"
-  
+
 logging:
   results_dir: "./results"

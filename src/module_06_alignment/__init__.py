@@ -1,1 +1,1 @@
-# Módulo 06: Alignment com DPO (Direct Preference Optimization)
+"""Module 06: Preference Alignment — Direct Preference Optimization (DPO) and SimPO."""

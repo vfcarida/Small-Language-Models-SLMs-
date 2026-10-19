@@ -1,1 +1,1 @@
-# Utilitários compartilhados entre módulos
+"""Shared configuration, dataset formatting, and evaluation metric utilities."""

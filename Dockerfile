@@ -1,13 +1,13 @@
-# Imagem base oficial do PyTorch com suporte a CUDA 12.1
+# Official PyTorch base image with CUDA 12.1 and cuDNN 8 development headers
 FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel
 
-# Variáveis de ambiente para build do flash-attention e runtime do vLLM
+# Environment variables for FlashAttention compilation and vLLM multiprocessing
 ENV DEBIAN_FRONTEND=noninteractive
 ENV MAX_JOBS=4
 ENV FLASH_ATTENTION_FORCE_BUILD=TRUE
 ENV VLLM_WORKER_MULTIPROCESS_METHOD=spawn
 
-# Instalação de dependências do sistema
+# Install system build dependencies
 RUN apt-get update && apt-get install -y \
     git \
     wget \
@@ -18,16 +18,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /workspace
 
-# Copiando apenas o requirements primeiro para aproveitar o cache do Docker
-COPY requirements.txt .
+# Copy dependency manifests first to leverage Docker layer caching
+COPY pyproject.toml setup.py requirements.txt README.md ./
 
-# Instalação das bibliotecas Python, assegurando o flash_attn
-# Compilar o flash_attn pode ser demorado, por isso a variável MAX_JOBS
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copia do código fonte do projeto
+# Copy full repository source and install package in editable mode
 COPY . .
+RUN pip install --no-cache-dir --no-deps -e .
 
-# Comando padrão
+# Default entrypoint
 CMD ["/bin/bash"]

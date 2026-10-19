@@ -1,1 +1,1 @@
-# Módulo 07: Avaliação, Benchmarks e Métricas
+"""Module 07: Evaluation, Perplexity, Latency Telemetry, and EleutherAI LM-Eval Harness."""

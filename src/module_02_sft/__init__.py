@@ -1,1 +1,1 @@
-# Módulo 02: Supervised Fine-Tuning (SFT) com LoRA e QLoRA
+"""Module 02: Supervised Fine-Tuning (SFT) with LoRA and 4-bit NormalFloat (QLoRA)."""
