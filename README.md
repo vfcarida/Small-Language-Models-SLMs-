@@ -84,6 +84,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **18** | [`docs/18_Grammar_Constrained_Decoding.md`](docs/18_Grammar_Constrained_Decoding.md) | [`src/module_18_constrained_decoding/`](src/module_18_constrained_decoding/) | **Grammar-Constrained & FSM Structured Decoding (`Outlines` / `XGrammar`)** (`FiniteStateGrammarIndex`, zero-overhead `apply_fsm_logit_mask`, and 100%-valid `JSONSchemaFSMDecoder`). | `Stable` |
 | **19** | [`docs/19_Cross_Tokenizer_Distillation.md`](docs/19_Cross_Tokenizer_Distillation.md) | [`src/module_19_cross_tokenizer_kd/`](src/module_19_cross_tokenizer_kd/) | **Cross-Tokenizer Knowledge Distillation (`ULD` & `MinED`)** (1D Wasserstein Optimal Transport `compute_uld_wasserstein_loss`, Levenshtein projection `align_cross_tokenizer_vocab`, and `CrossTokenizerDistiller`). | `Stable` |
 | **20** | [`docs/20_Mixture_of_Depths_and_Sparse_Routing.md`](docs/20_Mixture_of_Depths_and_Sparse_Routing.md) | [`src/module_20_mixture_of_depths/`](src/module_20_mixture_of_depths/) | **Mixture-of-Depths (`MoD`) & Dynamic Token Routing** (`MixtureOfDepthsBlock` capacity-bounded Top-$K$ gather/scatter, causal BCE predictor `compute_mod_auxiliary_loss`, and FLOPs profiler). | `Stable` |
+| **21** | [`docs/21_Model_Merging_TIES_DARE_SLERP.md`](docs/21_Model_Merging_TIES_DARE_SLERP.md) | [`src/module_21_model_merging/`](src/module_21_model_merging/) | **Task-Arithmetic & Evolutionary Model Merging (`TIES`, `DARE` & `SLERP`)** (`ties_merge_task_vectors`, unbiased Bernoulli rescaling `dare_sparsify_delta`, and geodesic `slerp_weights`). | `Stable` |
+| **22** | [`docs/22_KV_Cache_Eviction_StreamingLLM_H2O.md`](docs/22_KV_Cache_Eviction_StreamingLLM_H2O.md) | [`src/module_22_kv_cache_eviction/`](src/module_22_kv_cache_eviction/) | **Long-Context KV-Cache Eviction (`StreamingLLM` Sinks & `H2O` Oracle)** (`H2OStreamingKVCache` bounded index selector and `compare_kv_eviction_fidelity`). | `Stable` |
+| **23** | [`docs/23_Activation_Steering_and_RepE.md`](docs/23_Activation_Steering_and_RepE.md) | [`src/module_23_representation_steering/`](src/module_23_representation_steering/) | **Activation Steering & Representation Engineering (`RepE` & `CAA`)** (`extract_steering_vector` via SVD/CAA, norm-preserving `apply_activation_steering`, and orthogonal `ablate_concept_subspace`). | `Stable` |
 
 ---
 
@@ -174,6 +177,11 @@ python src/module_17_mixed_precision/lamp_allocator.py
 python src/module_18_constrained_decoding/fsm_guided_decoding.py
 python src/module_19_cross_tokenizer_kd/optimal_transport_kd.py
 python src/module_20_mixture_of_depths/mod_routing.py
+
+# Run Model Merging (TIES/DARE/SLERP), KV-Cache Eviction (StreamingLLM+H2O) & RepE Steering:
+python src/module_21_model_merging/task_arithmetic_merging.py
+python src/module_22_kv_cache_eviction/kv_eviction_policy.py
+python src/module_23_representation_steering/activation_steering.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -206,7 +214,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **21 modules (`00`–`20`)** and pipeline utilities are verified by an automated **101-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, and Mixture-of-Depths dynamic token routing:
+All **24 modules (`00`–`23`)** and pipeline utilities are verified by an automated **108-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, and RepE/CAA activation steering:
 
 ```bash
 pytest -v
@@ -239,6 +247,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 19. **Willard & Louf (2023).** *"Efficient Guided Generation for Large Language Models (Outlines)."* [`arXiv:2307.09702`](https://arxiv.org/abs/2307.09702)
 20. **Boizard et al. (ICML / TMLR 2024).** *"Towards Cross-Tokenizer Distillation: the Universal Logit Distillation Loss for LLMs (ULD)."* [`arXiv:2402.12030`](https://arxiv.org/abs/2402.12030)
 21. **Raposo et al. (Google DeepMind, 2024).** *"Mixture-of-Depths: Dynamically allocating compute in transformer-based language models."* [`arXiv:2404.02258`](https://arxiv.org/abs/2404.02258)
+22. **Yadav et al. (NeurIPS 2023).** *"TIES-Merging: Resolving Interference When Merging Models."* [`arXiv:2306.01708`](https://arxiv.org/abs/2306.01708)
+23. **Xiao et al. (MIT Han Lab, ICLR 2024).** *"Efficient Streaming Language Models with Attention Sinks (StreamingLLM)."* [`arXiv:2309.17453`](https://arxiv.org/abs/2309.17453)
+24. **Zou et al. (Center for AI Safety / CMU, 2023).** *"Representation Engineering: A Top-Down Approach to AI Transparency (RepE)."* [`arXiv:2310.01405`](https://arxiv.org/abs/2310.01405)
 
 ---
 

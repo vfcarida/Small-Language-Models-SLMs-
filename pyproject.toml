@@ -110,6 +110,9 @@ slm-lamp = "src.module_17_mixed_precision.lamp_allocator:main"
 slm-fsm-decode = "src.module_18_constrained_decoding.fsm_guided_decoding:main"
 slm-cross-kd = "src.module_19_cross_tokenizer_kd.optimal_transport_kd:main"
 slm-mod = "src.module_20_mixture_of_depths.mod_routing:main"
+slm-merge = "src.module_21_model_merging.task_arithmetic_merging:main"
+slm-kv-evict = "src.module_22_kv_cache_eviction.kv_eviction_policy:main"
+slm-steer = "src.module_23_representation_steering.activation_steering:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

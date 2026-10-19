@@ -49,15 +49,18 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 18: Grammar-Constrained & FSM Decoding (`src/module_18_constrained_decoding/`)** | Pre-indexed DFA vocabulary automaton (`FiniteStateGrammarIndex`), zero-overhead conditional logit mask (`apply_fsm_logit_mask`), and 100%-valid `JSONSchemaFSMDecoder` (`fsm_guided_decoding.py`). | Willard & Louf (`arXiv:2307.09702`); Dong et al. (`arXiv:2411.15100`) | **`Stable`** | `tests/test_constrained_decoding.py` |
 | **Module 19: Cross-Tokenizer Knowledge Distillation (`src/module_19_cross_tokenizer_kd/`)** | 1D Wasserstein Optimal Transport rank loss (`compute_uld_wasserstein_loss`), MinED Levenshtein vocabulary alignment (`align_cross_tokenizer_vocab`), and `CrossTokenizerDistiller` (`optimal_transport_kd.py`). | Boizard et al. (ICML/TMLR 2024, `arXiv:2402.12030`); Wan et al. (ACL 2024, `arXiv:2401.14691`) | **`Stable`** | `tests/test_cross_tokenizer_kd.py` |
 | **Module 20: Mixture-of-Depths & Dynamic Token Routing (`src/module_20_mixture_of_depths/`)** | Capacity-bounded Top-$K$ gather/scatter layer (`MixtureOfDepthsBlock`), causal BCE auxiliary predictor (`compute_mod_auxiliary_loss`), and FLOPs profiler (`mod_routing.py`). | Raposo et al. (Google DeepMind 2024, `arXiv:2404.02258`); Liu et al. (ICML 2023) | **`Stable`** | `tests/test_mixture_of_depths.py` |
+| **Module 21: Task-Arithmetic & Evolutionary Model Merging (`src/module_21_model_merging/`)** | `TIES-Merging` (`ties_merge_task_vectors`), `DARE` unbiased Bernoulli rescaling (`dare_sparsify_delta`), and geodesic `SLERP` (`slerp_weights`, `task_arithmetic_merging.py`). | Yadav et al. (NeurIPS 2023, `arXiv:2306.01708`); Yu et al. (ICML 2024, `arXiv:2311.03099`); Ilharco et al. (ICLR 2023) | **`Stable`** | `tests/test_model_merging.py` |
+| **Module 22: Long-Context KV-Cache Eviction (`src/module_22_kv_cache_eviction/`)** | `StreamingLLM` Attention Sinks + `H2O` Heavy-Hitter Oracle bounded KV selector (`H2OStreamingKVCache`) and eviction fidelity benchmark (`kv_eviction_policy.py`). | Xiao et al. (ICLR 2024, `arXiv:2309.17453`); Zhang et al. (NeurIPS 2023, `arXiv:2306.14048`) | **`Stable`** | `tests/test_kv_cache_eviction.py` |
+| **Module 23: Activation Steering & Representation Engineering (`src/module_23_representation_steering/`)** | Contrastive SVD/CAA steering vector extractor (`extract_steering_vector`), norm-preserving `apply_activation_steering`, and orthogonal `ablate_concept_subspace` (`activation_steering.py`). | Zou et al. (`arXiv:2310.01405`); Rimsky et al. (ACL 2024, `arXiv:2312.06681`); Arditi et al. (NeurIPS 2024, `arXiv:2406.11717`) | **`Stable`** | `tests/test_representation_steering.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — Task-Arithmetic & Evolutionary Model Merging (`TIES-Merging`, `DARE` & `SLERP`) (`Planned`):**
-   Training-free composition of multiple domain-specialized SLMs via magnitude-trimmed sign consensus (`TIES`), drop-and-rescale delta sparsification (`DARE`), and spherical linear interpolation (`SLERP`) on the weight manifold.
-2. **Track H2 — Long-Context KV-Cache Eviction & Token Merging (`H2O` Heavy-Hitter Oracle & `StreamingLLM` Attention Sinks) (`Planned`):**
-   Sub-linear KV-cache compression preserving initial "Attention Sink" tokens alongside cumulative attention Heavy-Hitters (`H2O`) for infinite-length streaming on fixed-SRAM edge devices.
-3. **Track H3 — Activation Steering & Representation Engineering (`RepE` / Contrastive Activation Addition) (`Planned`):**
-   Inference-time behavioral alignment and hallucination/toxicity suppression via difference-in-means steering vectors injected directly into residual stream activations with zero weight updates.
+1. **Track H1 — Test-Time Compute Scaling via Process Reward Models (`PRM`) & Best-of-$N$ / MCTS Beam Search (`Planned`):**
+   Step-level mathematical/logical verification (`Lightman et al., OpenAI 2023`; `Snell et al., UC Berkeley 2024`) guiding tree search over SLM reasoning trajectories so a 1.5B SLM outperforms a 14B single-pass baseline.
+2. **Track H2 — Matryoshka Representation Learning (`MRL`) & Elastic Width/Depth Sub-Network Slicing (`Planned`):**
+   Nested low-dimensional embeddings and elastic hidden projections (`Kusupati et al., NeurIPS 2022`; `Muralidharan et al., NVIDIA Minitron 2024`) allowing a single SLM checkpoint to dynamically slice its active width/depth at runtime to match instantaneous battery/thermal limits.
+3. **Track H3 — Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`SAE`) for SLM Feature Auditing (`Planned`):**
+   Monosemantic feature decomposition (`Templeton et al., Anthropic 2024`; `Gao et al., OpenAI 2024`) extracting interpretable sparse latent features from SLM residual streams for regulatory AI TRiSM auditing.
 

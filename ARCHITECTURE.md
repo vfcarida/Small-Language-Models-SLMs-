@@ -72,7 +72,10 @@ Small-Language-Models-SLMs-/
 │   ├── 17_Layer_Adaptive_Mixed_Precision.md # LAMP Hessian sensitivity & convex bit allocation
 │   ├── 18_Grammar_Constrained_Decoding.md # DFA/FSM vocabulary masking & 100%-valid JSON decoding
 │   ├── 19_Cross_Tokenizer_Distillation.md # ULD 1D Optimal Transport & MinED vocab alignment
-│   └── 20_Mixture_of_Depths_and_Sparse_Routing.md # MoD Top-K dynamic token routing & causal BCE
+│   ├── 20_Mixture_of_Depths_and_Sparse_Routing.md # MoD Top-K dynamic token routing & causal BCE
+│   ├── 21_Model_Merging_TIES_DARE_SLERP.md # TIES sign-consensus, DARE rescaling & SLERP geodesic
+│   ├── 22_KV_Cache_Eviction_StreamingLLM_H2O.md # StreamingLLM attention sinks & H2O heavy-hitter oracle
+│   └── 23_Activation_Steering_and_RepE.md # RepE SVD/CAA steering & orthogonal subspace ablation
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -105,7 +108,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_17_mixed_precision/       # lamp_allocator.py
 │   ├── module_18_constrained_decoding/  # fsm_guided_decoding.py
 │   ├── module_19_cross_tokenizer_kd/    # optimal_transport_kd.py
-│   └── module_20_mixture_of_depths/     # mod_routing.py
+│   ├── module_20_mixture_of_depths/     # mod_routing.py
+│   ├── module_21_model_merging/         # task_arithmetic_merging.py
+│   ├── module_22_kv_cache_eviction/     # kv_eviction_policy.py
+│   └── module_23_representation_steering/ # activation_steering.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -143,3 +149,7 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 ### 3.7 FSM Conditional Projection, Cross-Tokenizer OT-KD & Mixture-of-Depths Bypass (`module_18` – `module_20`)
 - **FSM Conditional Probability Preservation (`module_18_constrained_decoding`):** Masking disallowed transitions $v \notin \mathcal{A}(q_t)$ to $-\infty$ guarantees $\sum_{v \in \mathcal{A}(q_t)} \tilde{P}(v \mid \mathbf{x}, q_t) = 1$ while preserving exact likelihood ratios $\tilde{P}(v_1)/\tilde{P}(v_2) = P(v_1)/P(v_2)$ for all $v_1, v_2 \in \mathcal{A}(q_t)$.
 - **MoD Residual Identity Bypass (`module_20_mixture_of_depths`):** For all $(1 - \gamma)L$ unrouted tokens $t \notin \mathcal{I}_b$, $\mathbf{y}_{b, t} \equiv \mathbf{x}_{b, t}$ with zero FFN FLOPs expended.
+
+### 3.8 Geodesic SLERP Norm Invariance, StreamingLLM+H2O Eviction & RepE Orthogonal Ablation (`module_21` – `module_23`)
+- **SLERP Hypersphere Geodesic (`module_21_model_merging`):** For $\|\mathbf{w}_0\|_2 = \|\mathbf{w}_1\|_2 = R$, $\|\text{SLERP}(t; \mathbf{w}_0, \mathbf{w}_1)\|_2 = R$ holds for all $t \in [0, 1]$.
+- **Orthogonal Subspace Annihilation (`module_23_representation_steering`):** For unit concept vector $\hat{\mathbf{v}}$, $\mathbf{h}^\perp = (\mathbf{I} - \hat{\mathbf{v}}\hat{\mathbf{v}}^\top)\mathbf{h}$ satisfies $\langle \mathbf{h}^\perp, \hat{\mathbf{v}} \rangle = 0$ identically.
