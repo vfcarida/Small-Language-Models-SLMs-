@@ -41,8 +41,20 @@ Rotating activations and weights disperses concentrated outlier spikes uniformly
 
 ---
 
-## 4. Implementation Reference
+## 4. Learned Cayley Stiefel Manifold Rotation (`INT3`/`INT2`) & Asymmetric `INT4` KV-Cache Quantization
+
+In [`src/module_05_quantization/cayley_kv_quant.py`](../src/module_05_quantization/cayley_kv_quant.py), we extend analytical Hadamard rotations with **Riemannian Cayley SGD** on the Stiefel manifold $\text{St}(d_{\text{in}}, d_{\text{in}}) = \{R \in \mathbb{R}^{d_{\text{in}} \times d_{\text{in}}} : R^\top R = I\}$ (`cayley_orthogonal_step` & `optimize_cayley_rotation`):
+
+$$W = G R^\top - R G^\top \quad (W^\top = -W), \qquad R_{\text{next}} = \left(I + \frac{\eta}{2} W\right)^{-1} \left(I - \frac{\eta}{2} W\right) R$$
+
+Additionally, [`quantize_kv_cache_int4`](../src/module_05_quantization/cayley_kv_quant.py) implements **KVQuant / KIVI** asymmetric KV-cache compression, quantizing **Key states per-channel** (along the sequence axis to isolate persistent channel outliers) and **Value states per-token** (along the head dimension).
+
+---
+
+## 5. Implementation Reference
 
 - **AWQ Grid Search & Hadamard Smoothing:** [`src/module_05_quantization/awq_quantization.py`](../src/module_05_quantization/awq_quantization.py)
+- **Cayley Stiefel Rotation (`INT3`/`INT2`) & `INT4` KV-Cache Quantizer:** [`src/module_05_quantization/cayley_kv_quant.py`](../src/module_05_quantization/cayley_kv_quant.py)
 - **BitsAndBytes Dynamic INT8/NF4 & Memory Calculator:** [`src/module_05_quantization/bitsandbytes_quant.py`](../src/module_05_quantization/bitsandbytes_quant.py)
-- **Unit Verification:** [`tests/test_quantization.py`](../tests/test_quantization.py)
+- **Unit Verification:** [`tests/test_quantization.py`](../tests/test_quantization.py), [`tests/test_cayley_kv_quant.py`](../tests/test_cayley_kv_quant.py)
+

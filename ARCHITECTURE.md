@@ -57,11 +57,13 @@ Small-Language-Models-SLMs-/
 │   ├── 02_Supervised_Finetuning.md      # LoRA low-rank decomposition & 4-bit NormalFloat (QLoRA)
 │   ├── 03_Distillation.md               # Forward KL, Reverse KL (MiniLLM), and Generalized JSD (GKD)
 │   ├── 04_Pruning.md                    # Magnitude & Wanda pruning (per-output row & NVIDIA 2:4)
-│   ├── 05_Quantization.md               # AWQ salient scaling, SpinQuant Hadamard & NF4 Double Quant
+│   ├── 05_Quantization.md               # AWQ, SpinQuant, Cayley Stiefel INT3 & INT4 KV-Cache
 │   ├── 06_Alignment.md                  # Bradley-Terry DPO & Reference-Free SimPO preference losses
 │   ├── 07_Evaluation.md                 # Sliding-window perplexity, Pareto frontier & LM-Eval benchmarks
 │   ├── 08_Hybrid_Routing_and_Guardrails.md # Calibrated SLM-LLM routing, RouteLLM & AI TRiSM PII guardrails
-│   └── 09_Edge_Export_and_OpenAI_Serving.md # GGUF/vLLM/ONNX edge export & OpenAI/MCP serving gateway
+│   ├── 09_Edge_Export_and_OpenAI_Serving.md # GGUF/vLLM/ONNX edge export & OpenAI/MCP serving gateway
+│   ├── 10_Speculative_Decoding.md       # Lossless speculative rejection sampling & Medusa draft heads
+│   └── 11_RLVR_and_GRPO.md              # Critic-free GRPO & deterministic verifiable reward oracles
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -79,11 +81,13 @@ Small-Language-Models-SLMs-/
 │   ├── module_02_sft/                   # sft_lora.py, sft_qlora.py
 │   ├── module_03_distillation/          # gkd_pipeline.py
 │   ├── module_04_pruning/               # magnitude_pruning.py, wanda_pruning.py
-│   ├── module_05_quantization/          # awq_quantization.py, bitsandbytes_quant.py
+│   ├── module_05_quantization/          # awq_quantization.py, bitsandbytes_quant.py, cayley_kv_quant.py
 │   ├── module_06_alignment/             # dpo_trainer.py
 │   ├── module_07_evaluation/            # benchmark_runner.py, perplexity_eval.py, results_visualizer.py
 │   ├── module_08_routing/               # hybrid_router.py, router_calibration.py
-│   └── module_09_serving/               # edge_exporter.py, openai_server.py
+│   ├── module_09_serving/               # edge_exporter.py, openai_server.py
+│   ├── module_10_speculative/           # speculative_decoding.py
+│   └── module_11_rlvr_grpo/             # grpo_trainer.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 

@@ -68,11 +68,13 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **02** | [`docs/02_Supervised_Finetuning.md`](docs/02_Supervised_Finetuning.md) | [`src/module_02_sft/`](src/module_02_sft/) | Supervised Fine-Tuning with all-linear **LoRA** and 4-bit NormalFloat **QLoRA (`NF4`)**, analytical adapter merging, and dynamic `GPUOOMHandler` recovery. | `Stable` |
 | **03** | [`docs/03_Distillation.md`](docs/03_Distillation.md) | [`src/module_03_distillation/`](src/module_03_distillation/) | Temperature-scaled **Forward KL**, Mode-Seeking **Reverse KL (`MiniLLM`)**, **Generalized Jensen-Shannon Divergence (`GKD`)**, and decoupled `VLLMTeacherOracle` client. | `Stable` |
 | **04** | [`docs/04_Pruning.md`](docs/04_Pruning.md) | [`src/module_04_pruning/`](src/module_04_pruning/) | One-shot **Magnitude** and **Wanda** pruning ($S_{ij} = \|W_{ij}\| \cdot \|X_j\|_2$) with **per-output row (`dim=1`)** comparison groups, **NVIDIA `2:4` semi-structured sparsity**, and Zipf lexical entropy calibration. | `Stable` |
-| **05** | [`docs/05_Quantization.md`](docs/05_Quantization.md) | [`src/module_05_quantization/`](src/module_05_quantization/) | Pure-PyTorch **AWQ** salient-channel grid search ($s = s_X^\alpha$), group-wise INT4 pseudo-quantization, **SpinQuant** Hadamard rotation smoothing, `AutoAWQ` compiler, and `NF4` Double-Quant memory calculator. | `Stable` |
+| **05** | [`docs/05_Quantization.md`](docs/05_Quantization.md) | [`src/module_05_quantization/`](src/module_05_quantization/) | Pure-PyTorch **AWQ** salient-channel grid search ($s = s_X^\alpha$), **SpinQuant** Hadamard & **Cayley Stiefel (`INT3`/`INT2`)** rotation (`cayley_kv_quant.py`), **Asymmetric `INT4` KV-Cache**, and `NF4` Double-Quant calculator. | `Stable` |
 | **06** | [`docs/06_Alignment.md`](docs/06_Alignment.md) | [`src/module_06_alignment/`](src/module_06_alignment/) | Closed-form Bradley-Terry **DPO** loss (`compute_dpo_loss`) and **Reference-Free SimPO** loss (`compute_simpo_loss`) with length normalization and target reward margin $\gamma$. | `Stable` |
 | **07** | [`docs/07_Evaluation.md`](docs/07_Evaluation.md) | [`src/module_07_evaluation/`](src/module_07_evaluation/) & [`eval/benchmarks/`](eval/benchmarks/) | Overlapping sliding-window perplexity, EleutherAI `lm-evaluation-harness` runner (`MMLU`, `GSM8K`), **Cross-Architecture Empirical Pareto Suite** (`pareto_suite.py`), and radar charts. | `Stable` |
 | **08** | [`docs/08_Hybrid_Routing_and_Guardrails.md`](docs/08_Hybrid_Routing_and_Guardrails.md) | [`src/module_08_routing/`](src/module_08_routing/) | **Hybrid SLM-LLM Router**, **RouteLLM Bradley-Terry & Matrix Factorization Calibration** (`router_calibration.py`), `PIIGuardrail` (AI TRiSM), and TCO/ROI calculator. | `Stable` |
 | **09** | [`docs/09_Edge_Export_and_OpenAI_Serving.md`](docs/09_Edge_Export_and_OpenAI_Serving.md) | [`src/module_09_serving/`](src/module_09_serving/) | **Edge Runtime Exporter** (`GGUF` / `llama.cpp` / `Ollama`, `vLLM` PagedAttention validator, TorchScript/`ONNX` parity exporter) and **OpenAI `/v1/chat/completions` + MCP JSON-RPC 2.0 Gateway**. | `Stable` |
+| **10** | [`docs/10_Speculative_Decoding.md`](docs/10_Speculative_Decoding.md) | [`src/module_10_speculative/`](src/module_10_speculative/) | **Lossless Speculative Decoding** (`speculative_decoding_step`), residual distribution normalization, marginal identity verifier, speedup law, and **Medusa Multi-Horizon Draft Heads**. | `Stable` |
+| **11** | [`docs/11_RLVR_and_GRPO.md`](docs/11_RLVR_and_GRPO.md) | [`src/module_11_rlvr_grpo/`](src/module_11_rlvr_grpo/) | **Reinforcement Learning with Verifiable Rewards (`RLVR`) & Critic-Free `GRPO`** (`compute_grpo_loss`, Schulman KL, and deterministic `<think>/<answer>`, math & JSON verifiers). | `Stable` |
 
 ---
 
@@ -143,6 +145,11 @@ python eval/benchmarks/pareto_suite.py
 # Export GGUF/vLLM/TorchScript Edge Manifests & Smoke-Test the OpenAI + MCP Gateway:
 python src/module_09_serving/edge_exporter.py
 python src/module_09_serving/openai_server.py --smoke-test
+
+# Run Cayley Stiefel Sub-4-Bit Rotation, Speculative Decoding & DeepSeek-R1 Style GRPO:
+python src/module_05_quantization/cayley_kv_quant.py
+python src/module_10_speculative/speculative_decoding.py
+python src/module_11_rlvr_grpo/grpo_trainer.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler

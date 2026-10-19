@@ -98,6 +98,9 @@ slm-route = "src.module_08_routing.hybrid_router:main"
 slm-calibrate = "src.module_08_routing.router_calibration:main"
 slm-export = "src.module_09_serving.edge_exporter:main"
 slm-serve = "src.module_09_serving.openai_server:main"
+slm-cayley = "src.module_05_quantization.cayley_kv_quant:main"
+slm-speculative = "src.module_10_speculative.speculative_decoding:main"
+slm-grpo = "src.module_11_rlvr_grpo.grpo_trainer:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
