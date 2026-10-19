@@ -92,8 +92,12 @@ Issues = "https://github.com/vfcarida/Small-Language-Models-SLMs-/issues"
 [project.scripts]
 slm-pipeline = "pipeline.run_full_pipeline:main"
 slm-eval = "src.module_07_evaluation.benchmark_runner:main"
+slm-pareto = "eval.benchmarks.pareto_suite:main"
 slm-report = "pipeline.generate_report:main"
 slm-route = "src.module_08_routing.hybrid_router:main"
+slm-calibrate = "src.module_08_routing.router_calibration:main"
+slm-export = "src.module_09_serving.edge_exporter:main"
+slm-serve = "src.module_09_serving.openai_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -103,7 +107,7 @@ include = ["src*", "pipeline*", "eval*"]
 minversion = "8.0"
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "-ra -q"
+addopts = "-ra -q -p no:deepeval"
 
 [tool.ruff]
 line-length = 100

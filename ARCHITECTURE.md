@@ -30,15 +30,17 @@ flowchart TB
         Wanda --> AWQ
     end
 
-    subgraph Governance["4. Evaluation, Routing & AI TRiSM Runtime"]
-        Eval["Module 07: Perplexity, TTFT & LM-Eval Harness\nsrc/module_07_evaluation/"]
-        Router["Module 08: Hybrid SLM-LLM Router & PII Guardrail\nsrc/module_08_routing/"]
+    subgraph Governance["4. Evaluation, Calibrated Routing & Edge/MCP Serving"]
+        Eval["Module 07: Perplexity, Pareto Frontier & LM-Eval\nsrc/module_07_evaluation/ & eval/benchmarks/"]
+        Router["Module 08: Hybrid SLM-LLM Router, RouteLLM Calibration & PII Guardrail\nsrc/module_08_routing/"]
+        Serving["Module 09: Edge Export (GGUF/vLLM/ONNX) & OpenAI/MCP Gateway\nsrc/module_09_serving/"]
     end
 
     Validator --> Adaptation
     DPO --> Compression
     AWQ --> Eval
     Eval --> Router
+    Router --> Serving
 ```
 
 ---
@@ -57,11 +59,13 @@ Small-Language-Models-SLMs-/
 │   ├── 04_Pruning.md                    # Magnitude & Wanda pruning (per-output row & NVIDIA 2:4)
 │   ├── 05_Quantization.md               # AWQ salient scaling, SpinQuant Hadamard & NF4 Double Quant
 │   ├── 06_Alignment.md                  # Bradley-Terry DPO & Reference-Free SimPO preference losses
-│   ├── 07_Evaluation.md                 # Sliding-window perplexity & EleutherAI LM-Eval benchmarks
-│   └── 08_Hybrid_Routing_and_Guardrails.md # Calibrated SLM-LLM routing, AI TRiSM PII guardrails & ROI
+│   ├── 07_Evaluation.md                 # Sliding-window perplexity, Pareto frontier & LM-Eval benchmarks
+│   ├── 08_Hybrid_Routing_and_Guardrails.md # Calibrated SLM-LLM routing, RouteLLM & AI TRiSM PII guardrails
+│   └── 09_Edge_Export_and_OpenAI_Serving.md # GGUF/vLLM/ONNX edge export & OpenAI/MCP serving gateway
 ├── eval/
 │   └── benchmarks/
-│       └── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K profiler
+│       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
+│       └── pareto_suite.py              # Multi-objective Pareto frontier & live PyTorch compression ablation
 ├── pipeline/
 │   ├── run_full_pipeline.py             # End-to-end 6-stage training, merging & evaluation pipeline
 │   └── generate_report.py               # Automated Markdown executive report compiler
@@ -78,8 +82,9 @@ Small-Language-Models-SLMs-/
 │   ├── module_05_quantization/          # awq_quantization.py, bitsandbytes_quant.py
 │   ├── module_06_alignment/             # dpo_trainer.py
 │   ├── module_07_evaluation/            # benchmark_runner.py, perplexity_eval.py, results_visualizer.py
-│   └── module_08_routing/               # hybrid_router.py
-└── tests/                               # 100% CPU-verifiable unit & mathematical property test suite
+│   ├── module_08_routing/               # hybrid_router.py, router_calibration.py
+│   └── module_09_serving/               # edge_exporter.py, openai_server.py
+└── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
 ---

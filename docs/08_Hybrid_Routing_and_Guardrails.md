@@ -33,6 +33,13 @@ $$\text{Target}(q) = \begin{cases}
 \texttt{CLOUD\_LLM}, & \text{otherwise.}
 \end{cases}$$
 
+### Stage 4: Trained Bradley-Terry & Matrix Factorization Preference Calibration (`CalibratedPreferenceRouter`)
+Implemented in `src/module_08_routing/router_calibration.py` following **RouteLLM (Ong et al., ICLR 2025, `arXiv:2406.18665`)**, `CalibratedPreferenceRouter` maps an 8-dimensional query feature vector $\phi(q) \in \mathbb{R}^8$ into a calibrated win probability:
+
+$$P(\text{SLM suffices} \mid q) = \sigma\!\left( \frac{\mathbf{w}^\top \phi(q) + b + (\mathbf{u}_{\text{slm}} - \mathbf{u}_{\text{llm}})^\top V \phi(q)}{T} \right)$$
+
+It evaluates **Expected Calibration Error (ECE)**, **Brier Score**, and **Percentage of Performance Gap Recovered (PGR)**, solving for the exact threshold $\tau^*$ that satisfies a target SLM offload budget (`calibrate_threshold_for_budget`).
+
 ---
 
 ## 3. Top 10 Enterprise Workloads Where SLMs Outperform LLMs on ROI
@@ -53,4 +60,6 @@ $$\text{Target}(q) = \begin{cases}
 ## 4. Implementation Reference
 
 - **Hybrid Router, PII Guardrail & ROI Calculator:** [`src/module_08_routing/hybrid_router.py`](../src/module_08_routing/hybrid_router.py)
-- **Unit Verification:** [`tests/test_routing.py`](../tests/test_routing.py)
+- **Trained Preference Router Calibration (RouteLLM):** [`src/module_08_routing/router_calibration.py`](../src/module_08_routing/router_calibration.py)
+- **Unit Verification:** [`tests/test_routing.py`](../tests/test_routing.py), [`tests/test_router_calibration.py`](../tests/test_router_calibration.py)
+

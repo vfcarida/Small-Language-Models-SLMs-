@@ -32,10 +32,18 @@ Production SLM readiness requires standardized, reproducible task evaluation rat
 
 ---
 
-## 4. Implementation Reference
+## 4. Multi-Objective Pareto Frontier & Live Compression Ablation
+
+`eval/benchmarks/pareto_suite.py` computes the non-dominated Pareto frontier across `(Composite Quality Score, VRAM MB, TTFT ms, Cost $/1M Tokens)` for `Qwen2.5-1.5B`, `SmolLM2-1.7B`, `Llama-3.2-1B`, `Phi-3.5-mini-3.8B`, and `Llama-3.1-70B-Instruct`, and executes a live PyTorch kernel ablation comparing Dense FP16/BF16, Wanda `50%` Unstructured, Wanda `2:4` Semi-Structured, Naive RTN INT4, AWQ INT4, and SpinQuant Hadamard + AWQ INT4.
+
+---
+
+## 5. Implementation Reference
 
 - **EleutherAI Harness Runner:** [`src/module_07_evaluation/benchmark_runner.py`](../src/module_07_evaluation/benchmark_runner.py)
 - **Perplexity & Latency Profiler:** [`src/module_07_evaluation/perplexity_eval.py`](../src/module_07_evaluation/perplexity_eval.py)
 - **Loss & Radar Chart Visualizer:** [`src/module_07_evaluation/results_visualizer.py`](../src/module_07_evaluation/results_visualizer.py)
+- **Cross-Architecture Empirical Pareto Suite:** [`eval/benchmarks/pareto_suite.py`](../eval/benchmarks/pareto_suite.py)
 - **Operational Benchmark Tracker:** [`eval/benchmarks/latency_tracker.py`](../eval/benchmarks/latency_tracker.py)
-- **Unit Verification:** [`tests/test_evaluation_and_pipeline.py`](../tests/test_evaluation_and_pipeline.py)
+- **Unit Verification:** [`tests/test_evaluation_and_pipeline.py`](../tests/test_evaluation_and_pipeline.py), [`tests/test_pareto_suite.py`](../tests/test_pareto_suite.py)
+

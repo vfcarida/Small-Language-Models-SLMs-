@@ -234,11 +234,13 @@ class HybridSLMRouter:
         confidence_threshold: float = 0.65,
         abstain_confidence_floor: float = 0.35,
         enforce_local_on_pii: bool = True,
+        calibrated_router: Optional[object] = None,
     ) -> None:
         self.complexity_threshold = complexity_threshold
         self.confidence_threshold = confidence_threshold
         self.abstain_confidence_floor = abstain_confidence_floor
         self.enforce_local_on_pii = enforce_local_on_pii
+        self.calibrated_router = calibrated_router
 
     def route(
         self,
@@ -251,6 +253,10 @@ class HybridSLMRouter:
 
         if slm_logits is not None:
             conf = compute_logit_confidence(slm_logits)["composite_confidence"]
+        elif self.calibrated_router is not None and hasattr(
+            self.calibrated_router, "predict_win_probability"
+        ):
+            conf = float(self.calibrated_router.predict_win_probability(query))
         else:
             # Estimate expected SLM confidence inversely from task complexity when pre-routing
             conf = round(max(0.0, min(1.0, 1.0 - 0.65 * complexity)), 4)
