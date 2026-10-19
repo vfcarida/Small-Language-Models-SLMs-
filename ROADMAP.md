@@ -43,14 +43,18 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 12: State-Space & Hybrid Mamba-Transformer SLMs (`src/module_12_hybrid_ssm/`)** | Causal Selective State-Space Scan (`selective_ssm_scan`), `SelectiveSSMBlock` with $O(1)$-memory `step_recurrent`, parallel `HybridMambaAttentionBlock`, and 32k context memory scaling profiler (`hybrid_ssm_block.py`). | Gu & Dao (COLM 2024, `arXiv:2312.00752`); Dao & Gu (ICML 2024, `arXiv:2405.21060`); Dong et al. (ICLR 2025, `arXiv:2411.13676`) | **`Stable`** | `tests/test_hybrid_ssm.py` |
 | **Module 13: Multi-Agent Collaborative SLM Swarms (`src/module_13_agentic_swarms/`)** | Shared-backbone Multi-LoRA hot-swapping (`MultiLoRASwarmBackbone`), confidence-weighted consensus voting (`confidence_weighted_vote`), and 2-round Generator-Critic-Verifier debate (`SLMAgentSwarm`, `slm_swarm.py`). | Belcák et al. (`arXiv:2506.02153`); Du et al. (ICML 2024, `arXiv:2305.14325`); Wang et al. (ICLR 2023) | **`Stable`** | `tests/test_agentic_swarms.py` |
 | **Module 14: Federated & Differential-Privacy LoRA (`src/module_14_federated_dp_lora/`)** | $(\epsilon, \delta)$-DP Gaussian mechanism noise calibration (`compute_gaussian_dp_sigma`), per-sample $L_2$ gradient clipping (`clip_and_noise_gradients`), and cross-term-free `FFA-LoRA` & `SVD-Exact` aggregation (`dp_federated_lora.py`). | Abadi et al. (CCS 2016, `arXiv:1607.00133`); Yu et al. (ICLR 2022); Sun et al. (ICLR 2024, `arXiv:2403.12313`) | **`Stable`** | `tests/test_federated_dp_lora.py` |
+| **Module 15: Ternary `1.58-Bit` Native SLMs — BitNet b1.58 (`src/module_15_bitnet_ternary/`)** | `absmean` ternary weight quantization $\{-1,0,+1\}$ (`quantize_weights_absmean_ternary`), per-token `INT8` activation quantization, `BitLinear` with STE QAT, and multiplier-free `forward_add_only` kernel (`bitnet_linear.py`). | Ma et al. (Microsoft Research 2024, `arXiv:2402.17764`); BitNet b1.58 2B4T (`arXiv:2504.12285`) | **`Stable`** | `tests/test_bitnet_ternary.py` |
+| **Module 16: Latent-Space Continuous Reasoning — Coconut (`src/module_16_latent_reasoning/`)** | Continuous hidden-state thought recurrence (`LatentThoughtReasoner`), symmetric-KL early-exit `AdaptivePonderingGate`, and CoT vs. Coconut KV/latency profiler (`coconut_reasoning.py`). | Hao et al. (Meta FAIR 2024, `arXiv:2412.06769`); Geiping et al. (`arXiv:2502.05171`) | **`Stable`** | `tests/test_latent_reasoning.py` |
+| **Module 17: Layer-Adaptive Mixed-Precision — LAMP (`src/module_17_mixed_precision/`)** | Second-order Hessian trace sensitivity profiler (`compute_layer_hessian_sensitivity`), convex `{2,3,4,8}`-bit solver (`allocate_mixed_precision_bits`), and mixed-precision quantizer (`lamp_allocator.py`). | Kim et al. (ICML 2024, `arXiv:2306.07629`); Frantar et al. (ICLR 2023, `arXiv:2210.17323`); Yao et al. (ICML 2021) | **`Stable`** | `tests/test_lamp_allocator.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — Ternary `1.58-Bit` Native SLMs (`BitNet b1.58` & Sub-Bit LUT Kernels) (`Planned`):**
-   Quantization-Aware Training (QAT) with ternary weights $\{-1, 0, +1\}$ (`absmean` weight quantization + `absmax` `INT8` activation quantization) replacing floating-point matrix multiplications with pure integer additions on edge CPUs/NPUs.
-2. **Track H2 — Latent-Space Continuous Reasoning (`Coconut` / Recurrent Depth SLMs) (`Planned`):**
-   Continuous hidden-state thought recurrence before discrete token emission (`Hao et al., Meta FAIR 2024`; `Geiping et al., 2025`) to compress verbose Chain-of-Thought token chains by $3\times-5\times$.
-3. **Track H3 — Hardware-Aware Neural Architecture Search & Layer-Adaptive Mixed-Precision (`LAMP`) (`Planned`):**
-   Automated Hessian/sensitivity-guided bit-width allocation (`INT2` / `INT3` / `INT4` / `FP8`) per Transformer/SSM layer subject to strict device SRAM and latency budgets.
+1. **Track H1 — Grammar-Constrained & Finite-State Machine (FSM) Structured Decoding (`Planned`):**
+   Zero-overhead vocabulary logit masking driven by deterministic Pushdown Automata / Regex FSMs (`Outlines` / `XGrammar` style) guaranteeing 100% syntactic validity for JSON, SQL, and tool-call DSLs on 1B SLMs.
+2. **Track H2 — Cross-Tokenizer Knowledge Distillation via Optimal Transport (`ULD` / `MinED`) (`Planned`):**
+   Universal Logit Distillation using Wasserstein Optimal Transport and dynamic programming token alignment to distill knowledge across heterogeneous teacher-student vocabularies (e.g., `Llama-3` 128k vocab $\to$ `Qwen2.5` 152k vocab).
+3. **Track H3 — Activation-Sparsity & Mixture-of-Depths (`MoD` / `ProSparse`) Dynamic Token Routing (`Planned`):**
+   Top-$k$ per-layer token routing that dynamically skips self-attention and FFN computation for redundant context tokens, cutting FLOPs by 50% during prefill and decoding.
+

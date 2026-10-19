@@ -104,6 +104,9 @@ slm-grpo = "src.module_11_rlvr_grpo.grpo_trainer:main"
 slm-hybrid-ssm = "src.module_12_hybrid_ssm.hybrid_ssm_block:main"
 slm-swarm = "src.module_13_agentic_swarms.slm_swarm:main"
 slm-dp-lora = "src.module_14_federated_dp_lora.dp_federated_lora:main"
+slm-bitnet = "src.module_15_bitnet_ternary.bitnet_linear:main"
+slm-coconut = "src.module_16_latent_reasoning.coconut_reasoning:main"
+slm-lamp = "src.module_17_mixed_precision.lamp_allocator:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

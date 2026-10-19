@@ -78,6 +78,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **12** | [`docs/12_Hybrid_Mamba_Transformer_SLMs.md`](docs/12_Hybrid_Mamba_Transformer_SLMs.md) | [`src/module_12_hybrid_ssm/`](src/module_12_hybrid_ssm/) | **State-Space & Hybrid Mamba-Transformer SLMs** (`SelectiveSSMBlock` with $O(1)$-memory `step_recurrent`, `HybridMambaAttentionBlock`, and 32k context memory scaling profiler). | `Stable` |
 | **13** | [`docs/13_Multi_Agent_SLM_Swarms.md`](docs/13_Multi_Agent_SLM_Swarms.md) | [`src/module_13_agentic_swarms/`](src/module_13_agentic_swarms/) | **Multi-Agent Collaborative SLM Swarms & Debate Verification** (`MultiLoRASwarmBackbone`, `confidence_weighted_vote`, and 2-round Generator-Critic-Verifier debate with `PIIGuardrail`). | `Stable` |
 | **14** | [`docs/14_Federated_and_DP_LoRA.md`](docs/14_Federated_and_DP_LoRA.md) | [`src/module_14_federated_dp_lora/`](src/module_14_federated_dp_lora/) | **Federated & Differential-Privacy LoRA Aggregation** (`DP-SGD` per-sample $L_2$ clipping + calibrated Gaussian noise, `FFA-LoRA`, and `SVD-Exact` cross-term-free aggregation). | `Stable` |
+| **15** | [`docs/15_BitNet_Ternary_SLMs.md`](docs/15_BitNet_Ternary_SLMs.md) | [`src/module_15_bitnet_ternary/`](src/module_15_bitnet_ternary/) | **Ternary `1.58-Bit` Native SLMs (`BitNet b1.58`)** (`quantize_weights_absmean_ternary` $\{-1,0,+1\}$, per-token `INT8` `BitLinear` with STE, and multiplier-free `forward_add_only` kernel). | `Stable` |
+| **16** | [`docs/16_Latent_Space_Reasoning.md`](docs/16_Latent_Space_Reasoning.md) | [`src/module_16_latent_reasoning/`](src/module_16_latent_reasoning/) | **Latent-Space Continuous Reasoning (`Coconut` & Recurrent Depth)** (`LatentThoughtReasoner`, symmetric-KL `AdaptivePonderingGate`, and CoT vs. Coconut KV/latency profiler). | `Stable` |
+| **17** | [`docs/17_Layer_Adaptive_Mixed_Precision.md`](docs/17_Layer_Adaptive_Mixed_Precision.md) | [`src/module_17_mixed_precision/`](src/module_17_mixed_precision/) | **Layer-Adaptive Mixed-Precision (`LAMP`) & Hessian Bit Allocator** (`compute_layer_hessian_sensitivity`, optimal `{2,3,4,8}`-bit solver `allocate_mixed_precision_bits`, and `apply_lamp_mixed_precision`). | `Stable` |
 
 ---
 
@@ -158,6 +161,11 @@ python src/module_11_rlvr_grpo/grpo_trainer.py
 python src/module_12_hybrid_ssm/hybrid_ssm_block.py
 python src/module_13_agentic_swarms/slm_swarm.py
 python src/module_14_federated_dp_lora/dp_federated_lora.py
+
+# Run BitNet b1.58 Ternary SLMs, Coconut Latent Reasoning & LAMP Mixed-Precision:
+python src/module_15_bitnet_ternary/bitnet_linear.py
+python src/module_16_latent_reasoning/coconut_reasoning.py
+python src/module_17_mixed_precision/lamp_allocator.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -190,7 +198,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **15 modules (`00`–`14`)** and pipeline utilities are verified by an automated **84-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, and DP-SGD + FFA-LoRA aggregation:
+All **18 modules (`00`–`17`)** and pipeline utilities are verified by an automated **93-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, and LAMP Hessian mixed-precision bit allocation:
 
 ```bash
 pytest -v
@@ -217,6 +225,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 13. **Gu & Dao (CMU & Princeton, COLM 2024).** *"Mamba: Linear-Time Sequence Modeling with Selective State Spaces."* [`arXiv:2312.00752`](https://arxiv.org/abs/2312.00752)
 14. **Dong et al. (NVIDIA Research, ICLR 2025).** *"Hymba: A Hybrid-head Architecture for Small Language Models."* [`arXiv:2411.13676`](https://arxiv.org/abs/2411.13676)
 15. **Sun et al. (ICLR 2024).** *"Improving LoRA in Privacy-preserving Federated Learning (FFA-LoRA)."* [`arXiv:2403.12313`](https://arxiv.org/abs/2403.12313)
+16. **Ma et al. (Microsoft Research, 2024).** *"The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits (BitNet b1.58)."* [`arXiv:2402.17764`](https://arxiv.org/abs/2402.17764)
+17. **Hao et al. (Meta FAIR, 2024).** *"Training Large Language Models to Reason in a Continuous Latent Space (Coconut)."* [`arXiv:2412.06769`](https://arxiv.org/abs/2412.06769)
+18. **Kim et al. (UC Berkeley, ICML 2024).** *"SqueezeLLM: Dense-and-Sparse Quantization."* [`arXiv:2306.07629`](https://arxiv.org/abs/2306.07629)
 
 ---
 
