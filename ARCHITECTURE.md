@@ -69,7 +69,10 @@ Small-Language-Models-SLMs-/
 │   ├── 14_Federated_and_DP_LoRA.md      # DP-SGD per-sample clipping & cross-term-free FFA-LoRA
 │   ├── 15_BitNet_Ternary_SLMs.md        # Ternary 1.58-bit absmean weights & add-only kernels
 │   ├── 16_Latent_Space_Reasoning.md     # Coconut continuous latent pondering & KL halting gate
-│   └── 17_Layer_Adaptive_Mixed_Precision.md # LAMP Hessian sensitivity & convex bit allocation
+│   ├── 17_Layer_Adaptive_Mixed_Precision.md # LAMP Hessian sensitivity & convex bit allocation
+│   ├── 18_Grammar_Constrained_Decoding.md # DFA/FSM vocabulary masking & 100%-valid JSON decoding
+│   ├── 19_Cross_Tokenizer_Distillation.md # ULD 1D Optimal Transport & MinED vocab alignment
+│   └── 20_Mixture_of_Depths_and_Sparse_Routing.md # MoD Top-K dynamic token routing & causal BCE
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -99,7 +102,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_14_federated_dp_lora/     # dp_federated_lora.py
 │   ├── module_15_bitnet_ternary/        # bitnet_linear.py
 │   ├── module_16_latent_reasoning/      # coconut_reasoning.py
-│   └── module_17_mixed_precision/       # lamp_allocator.py
+│   ├── module_17_mixed_precision/       # lamp_allocator.py
+│   ├── module_18_constrained_decoding/  # fsm_guided_decoding.py
+│   ├── module_19_cross_tokenizer_kd/    # optimal_transport_kd.py
+│   └── module_20_mixture_of_depths/     # mod_routing.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -133,3 +139,7 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 ### 3.6 BitNet Add-Only Equivalence, Coconut Pondering & LAMP Convex Bit Allocation (`module_15` – `module_17`)
 - **BitNet Multiplier-Free Equivalence (`module_15_bitnet_ternary`):** For ternary weights $\widetilde{\mathbf{W}} \in \{-1, 0, +1\}$, accumulating $\sum_{j : \widetilde{W}_{ij}=+1} \widetilde{x}_j - \sum_{j : \widetilde{W}_{ij}=-1} \widetilde{x}_j$ matches floating-point STE matrix multiplication to within $< 10^{-5}$.
 - **LAMP Optimality over Uniform Quantization (`module_17_mixed_precision`):** Marginal-gain greedy allocation over $\Omega_\ell \cdot 4^{-b_\ell}$ achieves strictly lower layer reconstruction MSE than uniform bit-width quantization at equal or lower average bits per parameter.
+
+### 3.7 FSM Conditional Projection, Cross-Tokenizer OT-KD & Mixture-of-Depths Bypass (`module_18` – `module_20`)
+- **FSM Conditional Probability Preservation (`module_18_constrained_decoding`):** Masking disallowed transitions $v \notin \mathcal{A}(q_t)$ to $-\infty$ guarantees $\sum_{v \in \mathcal{A}(q_t)} \tilde{P}(v \mid \mathbf{x}, q_t) = 1$ while preserving exact likelihood ratios $\tilde{P}(v_1)/\tilde{P}(v_2) = P(v_1)/P(v_2)$ for all $v_1, v_2 \in \mathcal{A}(q_t)$.
+- **MoD Residual Identity Bypass (`module_20_mixture_of_depths`):** For all $(1 - \gamma)L$ unrouted tokens $t \notin \mathcal{I}_b$, $\mathbf{y}_{b, t} \equiv \mathbf{x}_{b, t}$ with zero FFN FLOPs expended.

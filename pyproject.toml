@@ -107,6 +107,9 @@ slm-dp-lora = "src.module_14_federated_dp_lora.dp_federated_lora:main"
 slm-bitnet = "src.module_15_bitnet_ternary.bitnet_linear:main"
 slm-coconut = "src.module_16_latent_reasoning.coconut_reasoning:main"
 slm-lamp = "src.module_17_mixed_precision.lamp_allocator:main"
+slm-fsm-decode = "src.module_18_constrained_decoding.fsm_guided_decoding:main"
+slm-cross-kd = "src.module_19_cross_tokenizer_kd.optimal_transport_kd:main"
+slm-mod = "src.module_20_mixture_of_depths.mod_routing:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

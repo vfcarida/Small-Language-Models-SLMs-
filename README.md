@@ -81,6 +81,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **15** | [`docs/15_BitNet_Ternary_SLMs.md`](docs/15_BitNet_Ternary_SLMs.md) | [`src/module_15_bitnet_ternary/`](src/module_15_bitnet_ternary/) | **Ternary `1.58-Bit` Native SLMs (`BitNet b1.58`)** (`quantize_weights_absmean_ternary` $\{-1,0,+1\}$, per-token `INT8` `BitLinear` with STE, and multiplier-free `forward_add_only` kernel). | `Stable` |
 | **16** | [`docs/16_Latent_Space_Reasoning.md`](docs/16_Latent_Space_Reasoning.md) | [`src/module_16_latent_reasoning/`](src/module_16_latent_reasoning/) | **Latent-Space Continuous Reasoning (`Coconut` & Recurrent Depth)** (`LatentThoughtReasoner`, symmetric-KL `AdaptivePonderingGate`, and CoT vs. Coconut KV/latency profiler). | `Stable` |
 | **17** | [`docs/17_Layer_Adaptive_Mixed_Precision.md`](docs/17_Layer_Adaptive_Mixed_Precision.md) | [`src/module_17_mixed_precision/`](src/module_17_mixed_precision/) | **Layer-Adaptive Mixed-Precision (`LAMP`) & Hessian Bit Allocator** (`compute_layer_hessian_sensitivity`, optimal `{2,3,4,8}`-bit solver `allocate_mixed_precision_bits`, and `apply_lamp_mixed_precision`). | `Stable` |
+| **18** | [`docs/18_Grammar_Constrained_Decoding.md`](docs/18_Grammar_Constrained_Decoding.md) | [`src/module_18_constrained_decoding/`](src/module_18_constrained_decoding/) | **Grammar-Constrained & FSM Structured Decoding (`Outlines` / `XGrammar`)** (`FiniteStateGrammarIndex`, zero-overhead `apply_fsm_logit_mask`, and 100%-valid `JSONSchemaFSMDecoder`). | `Stable` |
+| **19** | [`docs/19_Cross_Tokenizer_Distillation.md`](docs/19_Cross_Tokenizer_Distillation.md) | [`src/module_19_cross_tokenizer_kd/`](src/module_19_cross_tokenizer_kd/) | **Cross-Tokenizer Knowledge Distillation (`ULD` & `MinED`)** (1D Wasserstein Optimal Transport `compute_uld_wasserstein_loss`, Levenshtein projection `align_cross_tokenizer_vocab`, and `CrossTokenizerDistiller`). | `Stable` |
+| **20** | [`docs/20_Mixture_of_Depths_and_Sparse_Routing.md`](docs/20_Mixture_of_Depths_and_Sparse_Routing.md) | [`src/module_20_mixture_of_depths/`](src/module_20_mixture_of_depths/) | **Mixture-of-Depths (`MoD`) & Dynamic Token Routing** (`MixtureOfDepthsBlock` capacity-bounded Top-$K$ gather/scatter, causal BCE predictor `compute_mod_auxiliary_loss`, and FLOPs profiler). | `Stable` |
 
 ---
 
@@ -166,6 +169,11 @@ python src/module_14_federated_dp_lora/dp_federated_lora.py
 python src/module_15_bitnet_ternary/bitnet_linear.py
 python src/module_16_latent_reasoning/coconut_reasoning.py
 python src/module_17_mixed_precision/lamp_allocator.py
+
+# Run Grammar-Constrained FSM Decoding, Cross-Tokenizer OT-KD & Mixture-of-Depths:
+python src/module_18_constrained_decoding/fsm_guided_decoding.py
+python src/module_19_cross_tokenizer_kd/optimal_transport_kd.py
+python src/module_20_mixture_of_depths/mod_routing.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -198,7 +206,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **18 modules (`00`–`17`)** and pipeline utilities are verified by an automated **93-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, and LAMP Hessian mixed-precision bit allocation:
+All **21 modules (`00`–`20`)** and pipeline utilities are verified by an automated **101-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, and Mixture-of-Depths dynamic token routing:
 
 ```bash
 pytest -v
@@ -228,6 +236,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 16. **Ma et al. (Microsoft Research, 2024).** *"The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits (BitNet b1.58)."* [`arXiv:2402.17764`](https://arxiv.org/abs/2402.17764)
 17. **Hao et al. (Meta FAIR, 2024).** *"Training Large Language Models to Reason in a Continuous Latent Space (Coconut)."* [`arXiv:2412.06769`](https://arxiv.org/abs/2412.06769)
 18. **Kim et al. (UC Berkeley, ICML 2024).** *"SqueezeLLM: Dense-and-Sparse Quantization."* [`arXiv:2306.07629`](https://arxiv.org/abs/2306.07629)
+19. **Willard & Louf (2023).** *"Efficient Guided Generation for Large Language Models (Outlines)."* [`arXiv:2307.09702`](https://arxiv.org/abs/2307.09702)
+20. **Boizard et al. (ICML / TMLR 2024).** *"Towards Cross-Tokenizer Distillation: the Universal Logit Distillation Loss for LLMs (ULD)."* [`arXiv:2402.12030`](https://arxiv.org/abs/2402.12030)
+21. **Raposo et al. (Google DeepMind, 2024).** *"Mixture-of-Depths: Dynamically allocating compute in transformer-based language models."* [`arXiv:2404.02258`](https://arxiv.org/abs/2404.02258)
 
 ---
 

@@ -46,15 +46,18 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 15: Ternary `1.58-Bit` Native SLMs — BitNet b1.58 (`src/module_15_bitnet_ternary/`)** | `absmean` ternary weight quantization $\{-1,0,+1\}$ (`quantize_weights_absmean_ternary`), per-token `INT8` activation quantization, `BitLinear` with STE QAT, and multiplier-free `forward_add_only` kernel (`bitnet_linear.py`). | Ma et al. (Microsoft Research 2024, `arXiv:2402.17764`); BitNet b1.58 2B4T (`arXiv:2504.12285`) | **`Stable`** | `tests/test_bitnet_ternary.py` |
 | **Module 16: Latent-Space Continuous Reasoning — Coconut (`src/module_16_latent_reasoning/`)** | Continuous hidden-state thought recurrence (`LatentThoughtReasoner`), symmetric-KL early-exit `AdaptivePonderingGate`, and CoT vs. Coconut KV/latency profiler (`coconut_reasoning.py`). | Hao et al. (Meta FAIR 2024, `arXiv:2412.06769`); Geiping et al. (`arXiv:2502.05171`) | **`Stable`** | `tests/test_latent_reasoning.py` |
 | **Module 17: Layer-Adaptive Mixed-Precision — LAMP (`src/module_17_mixed_precision/`)** | Second-order Hessian trace sensitivity profiler (`compute_layer_hessian_sensitivity`), convex `{2,3,4,8}`-bit solver (`allocate_mixed_precision_bits`), and mixed-precision quantizer (`lamp_allocator.py`). | Kim et al. (ICML 2024, `arXiv:2306.07629`); Frantar et al. (ICLR 2023, `arXiv:2210.17323`); Yao et al. (ICML 2021) | **`Stable`** | `tests/test_lamp_allocator.py` |
+| **Module 18: Grammar-Constrained & FSM Decoding (`src/module_18_constrained_decoding/`)** | Pre-indexed DFA vocabulary automaton (`FiniteStateGrammarIndex`), zero-overhead conditional logit mask (`apply_fsm_logit_mask`), and 100%-valid `JSONSchemaFSMDecoder` (`fsm_guided_decoding.py`). | Willard & Louf (`arXiv:2307.09702`); Dong et al. (`arXiv:2411.15100`) | **`Stable`** | `tests/test_constrained_decoding.py` |
+| **Module 19: Cross-Tokenizer Knowledge Distillation (`src/module_19_cross_tokenizer_kd/`)** | 1D Wasserstein Optimal Transport rank loss (`compute_uld_wasserstein_loss`), MinED Levenshtein vocabulary alignment (`align_cross_tokenizer_vocab`), and `CrossTokenizerDistiller` (`optimal_transport_kd.py`). | Boizard et al. (ICML/TMLR 2024, `arXiv:2402.12030`); Wan et al. (ACL 2024, `arXiv:2401.14691`) | **`Stable`** | `tests/test_cross_tokenizer_kd.py` |
+| **Module 20: Mixture-of-Depths & Dynamic Token Routing (`src/module_20_mixture_of_depths/`)** | Capacity-bounded Top-$K$ gather/scatter layer (`MixtureOfDepthsBlock`), causal BCE auxiliary predictor (`compute_mod_auxiliary_loss`), and FLOPs profiler (`mod_routing.py`). | Raposo et al. (Google DeepMind 2024, `arXiv:2404.02258`); Liu et al. (ICML 2023) | **`Stable`** | `tests/test_mixture_of_depths.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — Grammar-Constrained & Finite-State Machine (FSM) Structured Decoding (`Planned`):**
-   Zero-overhead vocabulary logit masking driven by deterministic Pushdown Automata / Regex FSMs (`Outlines` / `XGrammar` style) guaranteeing 100% syntactic validity for JSON, SQL, and tool-call DSLs on 1B SLMs.
-2. **Track H2 — Cross-Tokenizer Knowledge Distillation via Optimal Transport (`ULD` / `MinED`) (`Planned`):**
-   Universal Logit Distillation using Wasserstein Optimal Transport and dynamic programming token alignment to distill knowledge across heterogeneous teacher-student vocabularies (e.g., `Llama-3` 128k vocab $\to$ `Qwen2.5` 152k vocab).
-3. **Track H3 — Activation-Sparsity & Mixture-of-Depths (`MoD` / `ProSparse`) Dynamic Token Routing (`Planned`):**
-   Top-$k$ per-layer token routing that dynamically skips self-attention and FFN computation for redundant context tokens, cutting FLOPs by 50% during prefill and decoding.
+1. **Track H1 — Task-Arithmetic & Evolutionary Model Merging (`TIES-Merging`, `DARE` & `SLERP`) (`Planned`):**
+   Training-free composition of multiple domain-specialized SLMs via magnitude-trimmed sign consensus (`TIES`), drop-and-rescale delta sparsification (`DARE`), and spherical linear interpolation (`SLERP`) on the weight manifold.
+2. **Track H2 — Long-Context KV-Cache Eviction & Token Merging (`H2O` Heavy-Hitter Oracle & `StreamingLLM` Attention Sinks) (`Planned`):**
+   Sub-linear KV-cache compression preserving initial "Attention Sink" tokens alongside cumulative attention Heavy-Hitters (`H2O`) for infinite-length streaming on fixed-SRAM edge devices.
+3. **Track H3 — Activation Steering & Representation Engineering (`RepE` / Contrastive Activation Addition) (`Planned`):**
+   Inference-time behavioral alignment and hallucination/toxicity suppression via difference-in-means steering vectors injected directly into residual stream activations with zero weight updates.
 
