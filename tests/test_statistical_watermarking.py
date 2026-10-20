@@ -39,3 +39,12 @@ def test_kgw_watermark_distinguishes_watermarked_from_unwatermarked_sequences() 
     assert det_wm["z_score"] > 6.0
     assert det_unwm["is_watermarked"] is False
     assert det_wm["z_score"] > det_unwm["z_score"] + 4.0
+
+
+def test_kgw_watermark_batch_logits_and_input_validation() -> None:
+    batch_logits = torch.zeros(3, 64)
+    biased = apply_kgw_watermark_logits(batch_logits, prev_token_ids=[5, 10, 15], gamma=0.25, delta=2.5)
+    assert biased.shape == (3, 64)
+    # Each row has exactly 16 green tokens biased to +2.5
+    assert torch.all((biased == 2.5).sum(dim=-1) == 16)
+
