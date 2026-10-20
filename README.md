@@ -90,6 +90,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **24** | [`docs/24_Test_Time_Compute_PRM_and_Search.md`](docs/24_Test_Time_Compute_PRM_and_Search.md) | [`src/module_24_test_time_prm/`](src/module_24_test_time_prm/) | **Test-Time Compute Scaling (`PRM` & Step-Level Beam Search)** (`ProcessRewardScorer`, `best_of_n_weighted_voting`, and `step_level_beam_search`). | `Stable` |
 | **25** | [`docs/25_Matryoshka_and_Minitron_Elastic_SLMs.md`](docs/25_Matryoshka_and_Minitron_Elastic_SLMs.md) | [`src/module_25_matryoshka_minitron/`](src/module_25_matryoshka_minitron/) | **Matryoshka Representation Learning (`MRL`) & Elastic Sub-Network Slicing (`Minitron`)** (`compute_matryoshka_loss`, `rank_minitron_structural_importance`, and `ElasticMatryoshkaLinear`). | `Stable` |
 | **26** | [`docs/26_Mechanistic_Interpretability_TopK_SAE.md`](docs/26_Mechanistic_Interpretability_TopK_SAE.md) | [`src/module_26_sparse_autoencoders/`](src/module_26_sparse_autoencoders/) | **Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`SAE`)** (`TopKSparseAutoencoder`, dead-latent `compute_sae_loss_with_auxk`, and causal `clamp_sae_feature`). | `Stable` |
+| **27** | [`docs/27_Multi_Head_Latent_Attention_MLA.md`](docs/27_Multi_Head_Latent_Attention_MLA.md) | [`src/module_27_mla_latent_attention/`](src/module_27_mla_latent_attention/) | **Multi-Head Latent Attention (`MLA`) & Low-Rank KV Compression** (`MultiHeadLatentAttention` with matrix absorption `forward_absorbed`, decoupled RoPE, and `profile_mla_kv_cache_savings`). | `Stable` |
+| **28** | [`docs/28_Byte_Latent_Dynamic_Patching_BLT.md`](docs/28_Byte_Latent_Dynamic_Patching_BLT.md) | [`src/module_28_byte_latent_patching/`](src/module_28_byte_latent_patching/) | **Byte-Latent & Dynamic Patch Tokenization (`BLT`)** (`compute_byte_stream_entropy`, `segment_bytes_into_dynamic_patches`, and `ByteLatentPatchPooling`). | `Stable` |
+| **29** | [`docs/29_Machine_Unlearning_NPO_and_RMU.md`](docs/29_Machine_Unlearning_NPO_and_RMU.md) | [`src/module_29_machine_unlearning/`](src/module_29_machine_unlearning/) | **Machine Unlearning & Targeted Knowledge Erasure (`NPO` & `RMU`)** (`compute_npo_unlearning_loss` and `compute_rmu_representation_loss`). | `Stable` |
 
 ---
 
@@ -190,6 +193,11 @@ python src/module_23_representation_steering/activation_steering.py
 python src/module_24_test_time_prm/prm_tree_search.py
 python src/module_25_matryoshka_minitron/elastic_matryoshka.py
 python src/module_26_sparse_autoencoders/topk_sae.py
+
+# Run Multi-Head Latent Attention (MLA), Byte-Latent Patching (BLT) & Machine Unlearning (NPO/RMU):
+python src/module_27_mla_latent_attention/mla_attention.py
+python src/module_28_byte_latent_patching/byte_latent_patcher.py
+python src/module_29_machine_unlearning/unlearning_objectives.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -222,7 +230,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **27 modules (`00`–`26`)** and pipeline utilities are verified by an automated **117-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, RepE/CAA activation steering, PRM-weighted test-time search, Matryoshka/Minitron elastic slicing, and Top-$K$ Sparse Autoencoders:
+All **30 modules (`00`–`29`)** and pipeline utilities are verified by an automated **126-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, RepE/CAA activation steering, PRM-weighted test-time search, Matryoshka/Minitron elastic slicing, Top-$K$ Sparse Autoencoders, DeepSeek-V2/V3 Multi-Head Latent Attention (`MLA`), Byte-Latent dynamic patching (`BLT`), and Machine Unlearning (`NPO` & `RMU`):
 
 ```bash
 pytest -v
@@ -261,6 +269,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 25. **Lightman et al. (OpenAI / ICLR 2024).** *"Let's Verify Step by Step (Process Reward Models)."* [`arXiv:2305.20050`](https://arxiv.org/abs/2305.20050)
 26. **Muralidharan et al. (NVIDIA Research, NeurIPS 2024).** *"Compact Language Models via Pruning and Knowledge Distillation (Minitron)."* [`arXiv:2407.14679`](https://arxiv.org/abs/2407.14679)
 27. **Gao et al. (OpenAI, 2024).** *"Scaling and evaluating sparse autoencoders (Top-K SAE)."* [`arXiv:2406.04093`](https://arxiv.org/abs/2406.04093)
+28. **Liu et al. (DeepSeek-AI, 2024).** *"DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model (MLA)."* [`arXiv:2405.04434`](https://arxiv.org/abs/2405.04434)
+29. **Pagnoni et al. (Meta FAIR, 2024).** *"Byte Latent Transformer: Patches Scale Better Than Tokens (BLT)."* [`arXiv:2412.09871`](https://arxiv.org/abs/2412.09871)
+30. **Zhang et al. (COLM 2024).** *"Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning (NPO)."* [`arXiv:2404.05868`](https://arxiv.org/abs/2404.05868)
 
 ---
 

@@ -78,7 +78,10 @@ Small-Language-Models-SLMs-/
 │   ├── 23_Activation_Steering_and_RepE.md # RepE SVD/CAA steering & orthogonal subspace ablation
 │   ├── 24_Test_Time_Compute_PRM_and_Search.md # PRM step verification, weighted voting & beam search
 │   ├── 25_Matryoshka_and_Minitron_Elastic_SLMs.md # MRL nested loss & Minitron elastic width/depth slicing
-│   └── 26_Mechanistic_Interpretability_TopK_SAE.md # Top-K Sparse Autoencoder, AuxK loss & feature clamping
+│   ├── 26_Mechanistic_Interpretability_TopK_SAE.md # Top-K Sparse Autoencoder, AuxK loss & feature clamping
+│   ├── 27_Multi_Head_Latent_Attention_MLA.md # DeepSeek-V2/V3 MLA weight absorption & decoupled RoPE
+│   ├── 28_Byte_Latent_Dynamic_Patching_BLT.md # Entropy-driven dynamic byte patching & cross-attention pooling
+│   └── 29_Machine_Unlearning_NPO_and_RMU.md # NPO bounded unlearning & RMU representation misdirection
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -117,7 +120,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_23_representation_steering/ # activation_steering.py
 │   ├── module_24_test_time_prm/         # prm_tree_search.py
 │   ├── module_25_matryoshka_minitron/   # elastic_matryoshka.py
-│   └── module_26_sparse_autoencoders/   # topk_sae.py
+│   ├── module_26_sparse_autoencoders/   # topk_sae.py
+│   ├── module_27_mla_latent_attention/  # mla_attention.py
+│   ├── module_28_byte_latent_patching/  # byte_latent_patcher.py
+│   └── module_29_machine_unlearning/    # unlearning_objectives.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -164,4 +170,10 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 - **PRM Aggregation Inequality (`module_24_test_time_prm`):** For step probabilities $r_t \in (0, 1]^T$, $\prod_{t=1}^T r_t \le \min_t r_t \le \exp\left(\frac{1}{T}\sum_t \log r_t\right)$.
 - **Matryoshka Permutation Invariance (`module_25_matryoshka_minitron`):** Full-width output $\mathbf{x}_{\pi}\mathbf{W}_{:, \pi}^\top = \mathbf{x}\mathbf{W}^\top$ is invariant under Minitron importance permutation $\pi$, while prefix slices $\mathbf{x}_{\pi[:m]}\mathbf{W}_{:, \pi[:m]}^\top$ minimize truncation error.
 - **Top-K Exact $L_0$ Sparsity (`module_26_sparse_autoencoders`):** Every token code $\mathbf{z} = \text{TopK}(\text{ReLU}(\mathbf{W}_{\text{enc}}(\mathbf{x} - \mathbf{b}_{\text{pre}}) + \mathbf{b}_{\text{enc}}), k)$ satisfies $\|\mathbf{z}\|_0 \le k$ and $\|\mathbf{w}_{\text{dec}, i}\|_2 = 1$.
+
+### 3.10 MLA Matrix Absorption, BLT Lossless Byte Partitioning & NPO Gradient Decay (`module_27` – `module_29`)
+- **MLA Weight-Absorbed Equivalence (`module_27_mla_latent_attention`):** Absorbing $\mathbf{W}_{UK, i}$ into query space and $\mathbf{W}_{UV, i}$ into output space guarantees $\|\mathbf{y}_{\text{standard}} - \mathbf{y}_{\text{absorbed}}\|_\infty < 10^{-5}$ while caching only $(d_c + d_r)$ elements per token.
+- **BLT Partition Completeness (`module_28_byte_latent_patching`):** Dynamic entropy-segmented patches $\mathcal{P}_1, \dots, \mathcal{P}_P$ form an exact contiguous partition of the byte sequence ($\bigoplus_{k=1}^P \mathcal{P}_k = \mathbf{b}_{1:L}$).
+- **NPO Asymptotic Gradient Stopping (`module_29_machine_unlearning`):** As $\log \pi_\theta(y_f \mid x_f) - \log \pi_{\text{ref}}(y_f \mid x_f) \to -\infty$, the NPO forget gradient weight $\sigma(\beta \Delta \log p) \to 0$.
+
 

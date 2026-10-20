@@ -116,6 +116,9 @@ slm-steer = "src.module_23_representation_steering.activation_steering:main"
 slm-prm = "src.module_24_test_time_prm.prm_tree_search:main"
 slm-matryoshka = "src.module_25_matryoshka_minitron.elastic_matryoshka:main"
 slm-sae = "src.module_26_sparse_autoencoders.topk_sae:main"
+slm-mla = "src.module_27_mla_latent_attention.mla_attention:main"
+slm-blt = "src.module_28_byte_latent_patching.byte_latent_patcher:main"
+slm-unlearn = "src.module_29_machine_unlearning.unlearning_objectives:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

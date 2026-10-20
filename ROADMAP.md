@@ -55,16 +55,20 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 24: Test-Time Compute Scaling via PRM & Tree Search (`src/module_24_test_time_prm/`)** | Step-level Process Reward Scorer (`ProcessRewardScorer`), PRM-weighted Self-Consistency (`best_of_n_weighted_voting`), and `step_level_beam_search` (`prm_tree_search.py`). | Lightman et al. (ICLR 2024, `arXiv:2305.20050`); Snell et al. (`arXiv:2408.03314`) | **`Stable`** | `tests/test_test_time_prm.py` |
 | **Module 25: Matryoshka Representation Learning & Elastic Slicing (`src/module_25_matryoshka_minitron/`)** | Nested multi-granularity objective (`compute_matryoshka_loss`), Minitron width/depth Block Influence ranking (`rank_minitron_structural_importance`), and `ElasticMatryoshkaLinear` (`elastic_matryoshka.py`). | Kusupati et al. (NeurIPS 2022, `arXiv:2205.13147`); Muralidharan et al. (NeurIPS 2024, `arXiv:2407.14679`) | **`Stable`** | `tests/test_matryoshka_minitron.py` |
 | **Module 26: Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`src/module_26_sparse_autoencoders/`)** | Overcomplete `TopKSparseAutoencoder`, dead-latent `AuxK` residual reconstruction (`compute_sae_loss_with_auxk`), and surgical causal clamping (`clamp_sae_feature`, `topk_sae.py`). | Gao et al. (OpenAI 2024, `arXiv:2406.04093`); Templeton et al. (Anthropic 2024) | **`Stable`** | `tests/test_sparse_autoencoders.py` |
+| **Module 27: Multi-Head Latent Attention & Low-Rank KV Compression (`src/module_27_mla_latent_attention/`)** | `MultiHeadLatentAttention` with joint low-rank $\mathbf{c}_t^{KV}$ compression, decoupled RoPE, weight-absorbed `forward_absorbed`, and `profile_mla_kv_cache_savings` (`mla_attention.py`). | Liu et al. (DeepSeek-V2, `arXiv:2405.04434`); DeepSeek-V3 (`arXiv:2412.19437`) | **`Stable`** | `tests/test_mla_latent_attention.py` |
+| **Module 28: Byte-Latent & Dynamic Patch Tokenization (`src/module_28_byte_latent_patching/`)** | Next-byte Shannon entropy (`compute_byte_stream_entropy`), dynamic boundary segmentation (`segment_bytes_into_dynamic_patches`), and `ByteLatentPatchPooling` (`byte_latent_patcher.py`). | Pagnoni et al. (Meta FAIR 2024, `arXiv:2412.09871`) | **`Stable`** | `tests/test_byte_latent_patching.py` |
+| **Module 29: Machine Unlearning & Targeted Knowledge Erasure (`src/module_29_machine_unlearning/`)** | Bounded-gradient Negative Preference Optimization (`compute_npo_unlearning_loss`) and Representation Misdirection for Unlearning (`compute_rmu_representation_loss`, `unlearning_objectives.py`). | Zhang et al. (COLM 2024, `arXiv:2404.05868`); Li et al. (ICML 2024, `arXiv:2403.03218`) | **`Stable`** | `tests/test_machine_unlearning.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — Multi-Head Latent Attention (`MLA`) & Low-Rank KV Joint Compression (`Planned`):**
-   DeepSeek-V2/V3 style low-rank key-value joint latent projection (`Liu et al., DeepSeek-AI 2024`) compressing the KV cache into a low-dimensional latent vector $\mathbf{c}_t^{KV} \in \mathbb{R}^{d_c}$ ($d_c \ll d_h n_h$) with decoupled RoPE keys.
-2. **Track H2 — Byte-Latent & Dynamic Patch Tokenization (`BLT`) for Tokenizer-Free SLMs (`Planned`):**
-   Entropy-driven dynamic byte patching (`Pagnoni et al., Meta FAIR 2024`) grouping predictable byte spans into variable-length latent patches based on next-byte Shannon entropy thresholds.
-3. **Track H3 — Unlearning & Targeted Knowledge Erasure (`NPO` & `RMU`) for Regulatory Compliance (`Planned`):**
-   Negative Preference Optimization (`Zhang et al., COLM 2024`) and Representation Misdirection for Unlearning (`Li et al., ICML 2024, WMDP`) to surgically erase hazardous or GDPR-revoked knowledge from an SLM without full retraining.
+1. **Track H1 — Differential Transformer (`DiffAttn`) for Hallucination & Attention-Noise Cancellation (`Planned`):**
+   Dual-softmax differential attention (`Ye et al., Microsoft Research / ICLR 2025, arXiv:2410.05258`) computing the difference between two separate softmax attention maps to cancel common-mode context noise in SLMs.
+2. **Track H2 — LoRA+ & DoRA (Weight-Decomposed Low-Rank Adaptation) (`Planned`):**
+   Directional-magnitude weight decomposition (`Liu et al., ICML 2024 Best Paper Finalist, arXiv:2402.09353`) and asymmetric learning-rate scaling (`Hayou et al., ICML 2024`) closing the remaining accuracy gap between PEFT and full fine-tuning.
+3. **Track H3 — Statistical Watermarking (`KGW` Green-List Logit Bias) for AI TRiSM Provenance (`Planned`):**
+   Cryptographic hash-seeded green/red vocabulary partitioning and $z$-score hypothesis testing (`Kirchenbauer et al., ICML 2023, arXiv:2301.10226`) for EU AI Act / Gartner AI TRiSM synthetic text provenance detection.
+
 
 
