@@ -87,6 +87,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **21** | [`docs/21_Model_Merging_TIES_DARE_SLERP.md`](docs/21_Model_Merging_TIES_DARE_SLERP.md) | [`src/module_21_model_merging/`](src/module_21_model_merging/) | **Task-Arithmetic & Evolutionary Model Merging (`TIES`, `DARE` & `SLERP`)** (`ties_merge_task_vectors`, unbiased Bernoulli rescaling `dare_sparsify_delta`, and geodesic `slerp_weights`). | `Stable` |
 | **22** | [`docs/22_KV_Cache_Eviction_StreamingLLM_H2O.md`](docs/22_KV_Cache_Eviction_StreamingLLM_H2O.md) | [`src/module_22_kv_cache_eviction/`](src/module_22_kv_cache_eviction/) | **Long-Context KV-Cache Eviction (`StreamingLLM` Sinks & `H2O` Oracle)** (`H2OStreamingKVCache` bounded index selector and `compare_kv_eviction_fidelity`). | `Stable` |
 | **23** | [`docs/23_Activation_Steering_and_RepE.md`](docs/23_Activation_Steering_and_RepE.md) | [`src/module_23_representation_steering/`](src/module_23_representation_steering/) | **Activation Steering & Representation Engineering (`RepE` & `CAA`)** (`extract_steering_vector` via SVD/CAA, norm-preserving `apply_activation_steering`, and orthogonal `ablate_concept_subspace`). | `Stable` |
+| **24** | [`docs/24_Test_Time_Compute_PRM_and_Search.md`](docs/24_Test_Time_Compute_PRM_and_Search.md) | [`src/module_24_test_time_prm/`](src/module_24_test_time_prm/) | **Test-Time Compute Scaling (`PRM` & Step-Level Beam Search)** (`ProcessRewardScorer`, `best_of_n_weighted_voting`, and `step_level_beam_search`). | `Stable` |
+| **25** | [`docs/25_Matryoshka_and_Minitron_Elastic_SLMs.md`](docs/25_Matryoshka_and_Minitron_Elastic_SLMs.md) | [`src/module_25_matryoshka_minitron/`](src/module_25_matryoshka_minitron/) | **Matryoshka Representation Learning (`MRL`) & Elastic Sub-Network Slicing (`Minitron`)** (`compute_matryoshka_loss`, `rank_minitron_structural_importance`, and `ElasticMatryoshkaLinear`). | `Stable` |
+| **26** | [`docs/26_Mechanistic_Interpretability_TopK_SAE.md`](docs/26_Mechanistic_Interpretability_TopK_SAE.md) | [`src/module_26_sparse_autoencoders/`](src/module_26_sparse_autoencoders/) | **Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`SAE`)** (`TopKSparseAutoencoder`, dead-latent `compute_sae_loss_with_auxk`, and causal `clamp_sae_feature`). | `Stable` |
 
 ---
 
@@ -182,6 +185,11 @@ python src/module_20_mixture_of_depths/mod_routing.py
 python src/module_21_model_merging/task_arithmetic_merging.py
 python src/module_22_kv_cache_eviction/kv_eviction_policy.py
 python src/module_23_representation_steering/activation_steering.py
+
+# Run Test-Time PRM Search, Matryoshka/Minitron Elastic Slicing & Top-K Sparse Autoencoders:
+python src/module_24_test_time_prm/prm_tree_search.py
+python src/module_25_matryoshka_minitron/elastic_matryoshka.py
+python src/module_26_sparse_autoencoders/topk_sae.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -214,7 +222,7 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **24 modules (`00`–`23`)** and pipeline utilities are verified by an automated **108-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, and RepE/CAA activation steering:
+All **27 modules (`00`–`26`)** and pipeline utilities are verified by an automated **117-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, RepE/CAA activation steering, PRM-weighted test-time search, Matryoshka/Minitron elastic slicing, and Top-$K$ Sparse Autoencoders:
 
 ```bash
 pytest -v
@@ -250,6 +258,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 22. **Yadav et al. (NeurIPS 2023).** *"TIES-Merging: Resolving Interference When Merging Models."* [`arXiv:2306.01708`](https://arxiv.org/abs/2306.01708)
 23. **Xiao et al. (MIT Han Lab, ICLR 2024).** *"Efficient Streaming Language Models with Attention Sinks (StreamingLLM)."* [`arXiv:2309.17453`](https://arxiv.org/abs/2309.17453)
 24. **Zou et al. (Center for AI Safety / CMU, 2023).** *"Representation Engineering: A Top-Down Approach to AI Transparency (RepE)."* [`arXiv:2310.01405`](https://arxiv.org/abs/2310.01405)
+25. **Lightman et al. (OpenAI / ICLR 2024).** *"Let's Verify Step by Step (Process Reward Models)."* [`arXiv:2305.20050`](https://arxiv.org/abs/2305.20050)
+26. **Muralidharan et al. (NVIDIA Research, NeurIPS 2024).** *"Compact Language Models via Pruning and Knowledge Distillation (Minitron)."* [`arXiv:2407.14679`](https://arxiv.org/abs/2407.14679)
+27. **Gao et al. (OpenAI, 2024).** *"Scaling and evaluating sparse autoencoders (Top-K SAE)."* [`arXiv:2406.04093`](https://arxiv.org/abs/2406.04093)
 
 ---
 

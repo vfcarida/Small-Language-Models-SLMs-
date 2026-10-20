@@ -113,6 +113,9 @@ slm-mod = "src.module_20_mixture_of_depths.mod_routing:main"
 slm-merge = "src.module_21_model_merging.task_arithmetic_merging:main"
 slm-kv-evict = "src.module_22_kv_cache_eviction.kv_eviction_policy:main"
 slm-steer = "src.module_23_representation_steering.activation_steering:main"
+slm-prm = "src.module_24_test_time_prm.prm_tree_search:main"
+slm-matryoshka = "src.module_25_matryoshka_minitron.elastic_matryoshka:main"
+slm-sae = "src.module_26_sparse_autoencoders.topk_sae:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

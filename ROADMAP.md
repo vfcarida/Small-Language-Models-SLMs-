@@ -52,15 +52,19 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 21: Task-Arithmetic & Evolutionary Model Merging (`src/module_21_model_merging/`)** | `TIES-Merging` (`ties_merge_task_vectors`), `DARE` unbiased Bernoulli rescaling (`dare_sparsify_delta`), and geodesic `SLERP` (`slerp_weights`, `task_arithmetic_merging.py`). | Yadav et al. (NeurIPS 2023, `arXiv:2306.01708`); Yu et al. (ICML 2024, `arXiv:2311.03099`); Ilharco et al. (ICLR 2023) | **`Stable`** | `tests/test_model_merging.py` |
 | **Module 22: Long-Context KV-Cache Eviction (`src/module_22_kv_cache_eviction/`)** | `StreamingLLM` Attention Sinks + `H2O` Heavy-Hitter Oracle bounded KV selector (`H2OStreamingKVCache`) and eviction fidelity benchmark (`kv_eviction_policy.py`). | Xiao et al. (ICLR 2024, `arXiv:2309.17453`); Zhang et al. (NeurIPS 2023, `arXiv:2306.14048`) | **`Stable`** | `tests/test_kv_cache_eviction.py` |
 | **Module 23: Activation Steering & Representation Engineering (`src/module_23_representation_steering/`)** | Contrastive SVD/CAA steering vector extractor (`extract_steering_vector`), norm-preserving `apply_activation_steering`, and orthogonal `ablate_concept_subspace` (`activation_steering.py`). | Zou et al. (`arXiv:2310.01405`); Rimsky et al. (ACL 2024, `arXiv:2312.06681`); Arditi et al. (NeurIPS 2024, `arXiv:2406.11717`) | **`Stable`** | `tests/test_representation_steering.py` |
+| **Module 24: Test-Time Compute Scaling via PRM & Tree Search (`src/module_24_test_time_prm/`)** | Step-level Process Reward Scorer (`ProcessRewardScorer`), PRM-weighted Self-Consistency (`best_of_n_weighted_voting`), and `step_level_beam_search` (`prm_tree_search.py`). | Lightman et al. (ICLR 2024, `arXiv:2305.20050`); Snell et al. (`arXiv:2408.03314`) | **`Stable`** | `tests/test_test_time_prm.py` |
+| **Module 25: Matryoshka Representation Learning & Elastic Slicing (`src/module_25_matryoshka_minitron/`)** | Nested multi-granularity objective (`compute_matryoshka_loss`), Minitron width/depth Block Influence ranking (`rank_minitron_structural_importance`), and `ElasticMatryoshkaLinear` (`elastic_matryoshka.py`). | Kusupati et al. (NeurIPS 2022, `arXiv:2205.13147`); Muralidharan et al. (NeurIPS 2024, `arXiv:2407.14679`) | **`Stable`** | `tests/test_matryoshka_minitron.py` |
+| **Module 26: Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`src/module_26_sparse_autoencoders/`)** | Overcomplete `TopKSparseAutoencoder`, dead-latent `AuxK` residual reconstruction (`compute_sae_loss_with_auxk`), and surgical causal clamping (`clamp_sae_feature`, `topk_sae.py`). | Gao et al. (OpenAI 2024, `arXiv:2406.04093`); Templeton et al. (Anthropic 2024) | **`Stable`** | `tests/test_sparse_autoencoders.py` |
 
 ---
 
 ## 4. Next-Horizon Frontier Tracks (`Planned`)
 
-1. **Track H1 — Test-Time Compute Scaling via Process Reward Models (`PRM`) & Best-of-$N$ / MCTS Beam Search (`Planned`):**
-   Step-level mathematical/logical verification (`Lightman et al., OpenAI 2023`; `Snell et al., UC Berkeley 2024`) guiding tree search over SLM reasoning trajectories so a 1.5B SLM outperforms a 14B single-pass baseline.
-2. **Track H2 — Matryoshka Representation Learning (`MRL`) & Elastic Width/Depth Sub-Network Slicing (`Planned`):**
-   Nested low-dimensional embeddings and elastic hidden projections (`Kusupati et al., NeurIPS 2022`; `Muralidharan et al., NVIDIA Minitron 2024`) allowing a single SLM checkpoint to dynamically slice its active width/depth at runtime to match instantaneous battery/thermal limits.
-3. **Track H3 — Mechanistic Interpretability via Top-$K$ Sparse Autoencoders (`SAE`) for SLM Feature Auditing (`Planned`):**
-   Monosemantic feature decomposition (`Templeton et al., Anthropic 2024`; `Gao et al., OpenAI 2024`) extracting interpretable sparse latent features from SLM residual streams for regulatory AI TRiSM auditing.
+1. **Track H1 — Multi-Head Latent Attention (`MLA`) & Low-Rank KV Joint Compression (`Planned`):**
+   DeepSeek-V2/V3 style low-rank key-value joint latent projection (`Liu et al., DeepSeek-AI 2024`) compressing the KV cache into a low-dimensional latent vector $\mathbf{c}_t^{KV} \in \mathbb{R}^{d_c}$ ($d_c \ll d_h n_h$) with decoupled RoPE keys.
+2. **Track H2 — Byte-Latent & Dynamic Patch Tokenization (`BLT`) for Tokenizer-Free SLMs (`Planned`):**
+   Entropy-driven dynamic byte patching (`Pagnoni et al., Meta FAIR 2024`) grouping predictable byte spans into variable-length latent patches based on next-byte Shannon entropy thresholds.
+3. **Track H3 — Unlearning & Targeted Knowledge Erasure (`NPO` & `RMU`) for Regulatory Compliance (`Planned`):**
+   Negative Preference Optimization (`Zhang et al., COLM 2024`) and Representation Misdirection for Unlearning (`Li et al., ICML 2024, WMDP`) to surgically erase hazardous or GDPR-revoked knowledge from an SLM without full retraining.
+
 

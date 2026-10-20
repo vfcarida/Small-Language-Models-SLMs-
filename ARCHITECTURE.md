@@ -75,7 +75,10 @@ Small-Language-Models-SLMs-/
 │   ├── 20_Mixture_of_Depths_and_Sparse_Routing.md # MoD Top-K dynamic token routing & causal BCE
 │   ├── 21_Model_Merging_TIES_DARE_SLERP.md # TIES sign-consensus, DARE rescaling & SLERP geodesic
 │   ├── 22_KV_Cache_Eviction_StreamingLLM_H2O.md # StreamingLLM attention sinks & H2O heavy-hitter oracle
-│   └── 23_Activation_Steering_and_RepE.md # RepE SVD/CAA steering & orthogonal subspace ablation
+│   ├── 23_Activation_Steering_and_RepE.md # RepE SVD/CAA steering & orthogonal subspace ablation
+│   ├── 24_Test_Time_Compute_PRM_and_Search.md # PRM step verification, weighted voting & beam search
+│   ├── 25_Matryoshka_and_Minitron_Elastic_SLMs.md # MRL nested loss & Minitron elastic width/depth slicing
+│   └── 26_Mechanistic_Interpretability_TopK_SAE.md # Top-K Sparse Autoencoder, AuxK loss & feature clamping
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -111,7 +114,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_20_mixture_of_depths/     # mod_routing.py
 │   ├── module_21_model_merging/         # task_arithmetic_merging.py
 │   ├── module_22_kv_cache_eviction/     # kv_eviction_policy.py
-│   └── module_23_representation_steering/ # activation_steering.py
+│   ├── module_23_representation_steering/ # activation_steering.py
+│   ├── module_24_test_time_prm/         # prm_tree_search.py
+│   ├── module_25_matryoshka_minitron/   # elastic_matryoshka.py
+│   └── module_26_sparse_autoencoders/   # topk_sae.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -153,3 +159,9 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 ### 3.8 Geodesic SLERP Norm Invariance, StreamingLLM+H2O Eviction & RepE Orthogonal Ablation (`module_21` – `module_23`)
 - **SLERP Hypersphere Geodesic (`module_21_model_merging`):** For $\|\mathbf{w}_0\|_2 = \|\mathbf{w}_1\|_2 = R$, $\|\text{SLERP}(t; \mathbf{w}_0, \mathbf{w}_1)\|_2 = R$ holds for all $t \in [0, 1]$.
 - **Orthogonal Subspace Annihilation (`module_23_representation_steering`):** For unit concept vector $\hat{\mathbf{v}}$, $\mathbf{h}^\perp = (\mathbf{I} - \hat{\mathbf{v}}\hat{\mathbf{v}}^\top)\mathbf{h}$ satisfies $\langle \mathbf{h}^\perp, \hat{\mathbf{v}} \rangle = 0$ identically.
+
+### 3.9 PRM Bottleneck Verification, Matryoshka Prefix Dominance & Top-K SAE Sparsity (`module_24` – `module_26`)
+- **PRM Aggregation Inequality (`module_24_test_time_prm`):** For step probabilities $r_t \in (0, 1]^T$, $\prod_{t=1}^T r_t \le \min_t r_t \le \exp\left(\frac{1}{T}\sum_t \log r_t\right)$.
+- **Matryoshka Permutation Invariance (`module_25_matryoshka_minitron`):** Full-width output $\mathbf{x}_{\pi}\mathbf{W}_{:, \pi}^\top = \mathbf{x}\mathbf{W}^\top$ is invariant under Minitron importance permutation $\pi$, while prefix slices $\mathbf{x}_{\pi[:m]}\mathbf{W}_{:, \pi[:m]}^\top$ minimize truncation error.
+- **Top-K Exact $L_0$ Sparsity (`module_26_sparse_autoencoders`):** Every token code $\mathbf{z} = \text{TopK}(\text{ReLU}(\mathbf{W}_{\text{enc}}(\mathbf{x} - \mathbf{b}_{\text{pre}}) + \mathbf{b}_{\text{enc}}), k)$ satisfies $\|\mathbf{z}\|_0 \le k$ and $\|\mathbf{w}_{\text{dec}, i}\|_2 = 1$.
+
