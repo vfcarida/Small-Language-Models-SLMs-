@@ -11,7 +11,7 @@
 
 **The production-grade reference playbook and glass-box PyTorch toolkit for training, distilling, pruning, quantizing, aligning, evaluating, and routing Small Language Models (<4B parameters) in constrained enterprise and edge environments.**
 
-[Architecture Specification](ARCHITECTURE.md) • [Product Roadmap & Governance](ROADMAP.md) • [Contributing Guide](CONTRIBUTING.md) • [Citation (`CITATION.cff`)](CITATION.cff)
+[Architecture Specification](ARCHITECTURE.md) • [Product Roadmap & Governance](ROADMAP.md) • [Scientific Bibliography (`docs/REFERENCES.md`)](docs/REFERENCES.md) • [Security & AI TRiSM (`SECURITY.md`)](SECURITY.md) • [Contributing Guide](CONTRIBUTING.md) • [Citation (`CITATION.cff`)](CITATION.cff)
 
 </div>
 
@@ -93,6 +93,9 @@ Every module pairs a **self-contained, CPU-testable PyTorch mathematical impleme
 | **27** | [`docs/27_Multi_Head_Latent_Attention_MLA.md`](docs/27_Multi_Head_Latent_Attention_MLA.md) | [`src/module_27_mla_latent_attention/`](src/module_27_mla_latent_attention/) | **Multi-Head Latent Attention (`MLA`) & Low-Rank KV Compression** (`MultiHeadLatentAttention` with matrix absorption `forward_absorbed`, decoupled RoPE, and `profile_mla_kv_cache_savings`). | `Stable` |
 | **28** | [`docs/28_Byte_Latent_Dynamic_Patching_BLT.md`](docs/28_Byte_Latent_Dynamic_Patching_BLT.md) | [`src/module_28_byte_latent_patching/`](src/module_28_byte_latent_patching/) | **Byte-Latent & Dynamic Patch Tokenization (`BLT`)** (`compute_byte_stream_entropy`, `segment_bytes_into_dynamic_patches`, and `ByteLatentPatchPooling`). | `Stable` |
 | **29** | [`docs/29_Machine_Unlearning_NPO_and_RMU.md`](docs/29_Machine_Unlearning_NPO_and_RMU.md) | [`src/module_29_machine_unlearning/`](src/module_29_machine_unlearning/) | **Machine Unlearning & Targeted Knowledge Erasure (`NPO` & `RMU`)** (`compute_npo_unlearning_loss` and `compute_rmu_representation_loss`). | `Stable` |
+| **30** | [`docs/30_Differential_Transformer_DiffAttn.md`](docs/30_Differential_Transformer_DiffAttn.md) | [`src/module_30_differential_attention/`](src/module_30_differential_attention/) | **Differential Transformer (`DiffAttn`) Noise Cancellation** (`DifferentialAttention` dual-softmax subtraction, `compute_lambda_init`, and `measure_attention_snr`). | `Stable` |
+| **31** | [`docs/31_DoRA_and_LoRA_Plus_Adaptation.md`](docs/31_DoRA_and_LoRA_Plus_Adaptation.md) | [`src/module_31_dora_lora_plus/`](src/module_31_dora_lora_plus/) | **Weight-Decomposed Low-Rank Adaptation (`DoRA`) & Asymmetric `LoRA+`** (`DoRALinear` magnitude-direction decomposition and `build_lora_plus_param_groups`). | `Stable` |
+| **32** | [`docs/32_Statistical_Watermarking_KGW.md`](docs/32_Statistical_Watermarking_KGW.md) | [`src/module_32_statistical_watermarking/`](src/module_32_statistical_watermarking/) | **Statistical Watermarking (`KGW` Green-List Logit Bias) for AI TRiSM** (`partition_green_red_vocab`, `apply_kgw_watermark_logits`, and `detect_kgw_watermark_zscore`). | `Stable` |
 
 ---
 
@@ -198,6 +201,11 @@ python src/module_26_sparse_autoencoders/topk_sae.py
 python src/module_27_mla_latent_attention/mla_attention.py
 python src/module_28_byte_latent_patching/byte_latent_patcher.py
 python src/module_29_machine_unlearning/unlearning_objectives.py
+
+# Run Differential Transformer (DiffAttn), DoRA/LoRA+ & KGW Statistical Watermarking:
+python src/module_30_differential_attention/diff_attention.py
+python src/module_31_dora_lora_plus/dora_adapter.py
+python src/module_32_statistical_watermarking/kgw_watermark.py
 ```
 
 ### 3. Run the End-to-End Orchestration Pipeline & Report Compiler
@@ -230,13 +238,13 @@ Empirical comparison contrasting a frontier 70B generalist model against dense a
 
 ## 🧪 Testing, Reproducibility & Maturity Governance
 
-All **30 modules (`00`–`29`)** and pipeline utilities are verified by an automated **126-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, RepE/CAA activation steering, PRM-weighted test-time search, Matryoshka/Minitron elastic slicing, Top-$K$ Sparse Autoencoders, DeepSeek-V2/V3 Multi-Head Latent Attention (`MLA`), Byte-Latent dynamic patching (`BLT`), and Machine Unlearning (`NPO` & `RMU`):
+All **33 modules (`00`–`32`)** and pipeline utilities are verified by an automated **134-test `pytest` suite** covering configuration validation, prompt templating, attention row-stochasticity, decoding strategies, Forward/Reverse KL & JSD distillation identities, per-output Wanda & `2:4` semi-structured pruning invariants, AWQ salient-channel MSE reduction, Hadamard & Cayley Stiefel rotation invariance, DPO/SimPO reward margins, AI TRiSM PII routing guardrails, lossless Speculative Decoding, GRPO verifiable rewards, Hybrid Mamba-Transformer $O(1)$ recurrence, Multi-Agent SLM debate, DP-SGD + FFA-LoRA aggregation, BitNet b1.58 add-only kernels, Coconut continuous latent pondering, LAMP Hessian mixed-precision bit allocation, Grammar-Constrained FSM decoding, Cross-Tokenizer Optimal Transport KD, Mixture-of-Depths dynamic token routing, TIES/DARE/SLERP model merging, StreamingLLM+H2O KV-cache eviction, RepE/CAA activation steering, PRM-weighted test-time search, Matryoshka/Minitron elastic slicing, Top-$K$ Sparse Autoencoders, DeepSeek-V2/V3 Multi-Head Latent Attention (`MLA`), Byte-Latent dynamic patching (`BLT`), Machine Unlearning (`NPO` & `RMU`), Differential Attention (`DiffAttn`), Weight-Decomposed Adaptation (`DoRA` & `LoRA+`), and `KGW` Statistical Watermarking:
 
 ```bash
 pytest -v
 ```
 
-See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and next-horizon research tracks.
+See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and [`docs/REFERENCES.md`](docs/REFERENCES.md) for the complete 46-entry primary bibliography.
 
 ---
 
@@ -272,6 +280,9 @@ See [`ROADMAP.md`](ROADMAP.md) for our **Maturity Model & Quality Gates** and ne
 28. **Liu et al. (DeepSeek-AI, 2024).** *"DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model (MLA)."* [`arXiv:2405.04434`](https://arxiv.org/abs/2405.04434)
 29. **Pagnoni et al. (Meta FAIR, 2024).** *"Byte Latent Transformer: Patches Scale Better Than Tokens (BLT)."* [`arXiv:2412.09871`](https://arxiv.org/abs/2412.09871)
 30. **Zhang et al. (COLM 2024).** *"Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning (NPO)."* [`arXiv:2404.05868`](https://arxiv.org/abs/2404.05868)
+31. **Ye et al. (Microsoft Research, ICLR 2025).** *"Differential Transformer (DiffAttn)."* [`arXiv:2410.05258`](https://arxiv.org/abs/2410.05258)
+32. **Liu et al. (NVIDIA Research, ICML 2024 Oral).** *"DoRA: Weight-Decomposed Low-Rank Adaptation."* [`arXiv:2402.09353`](https://arxiv.org/abs/2402.09353)
+33. **Kirchenbauer et al. (ICML 2023).** *"A Watermark for Large Language Models (KGW)."* [`arXiv:2301.10226`](https://arxiv.org/abs/2301.10226)
 
 ---
 

@@ -81,7 +81,11 @@ Small-Language-Models-SLMs-/
 │   ├── 26_Mechanistic_Interpretability_TopK_SAE.md # Top-K Sparse Autoencoder, AuxK loss & feature clamping
 │   ├── 27_Multi_Head_Latent_Attention_MLA.md # DeepSeek-V2/V3 MLA weight absorption & decoupled RoPE
 │   ├── 28_Byte_Latent_Dynamic_Patching_BLT.md # Entropy-driven dynamic byte patching & cross-attention pooling
-│   └── 29_Machine_Unlearning_NPO_and_RMU.md # NPO bounded unlearning & RMU representation misdirection
+│   ├── 29_Machine_Unlearning_NPO_and_RMU.md # NPO bounded unlearning & RMU representation misdirection
+│   ├── 30_Differential_Transformer_DiffAttn.md # Dual-softmax Differential Attention & noise cancellation
+│   ├── 31_DoRA_and_LoRA_Plus_Adaptation.md # Weight-Decomposed DoRA & asymmetric LoRA+ parameter groups
+│   ├── 32_Statistical_Watermarking_KGW.md # Cryptographic green-list KGW watermarking & z-score detector
+│   └── REFERENCES.md                    # Complete 46-entry primary scientific & enterprise bibliography
 ├── eval/
 │   └── benchmarks/
 │       ├── latency_tracker.py           # Cross-architecture TTFT, VRAM & MMLU/GSM8K chart generator
@@ -123,7 +127,10 @@ Small-Language-Models-SLMs-/
 │   ├── module_26_sparse_autoencoders/   # topk_sae.py
 │   ├── module_27_mla_latent_attention/  # mla_attention.py
 │   ├── module_28_byte_latent_patching/  # byte_latent_patcher.py
-│   └── module_29_machine_unlearning/    # unlearning_objectives.py
+│   ├── module_29_machine_unlearning/    # unlearning_objectives.py
+│   ├── module_30_differential_attention/ # diff_attention.py
+│   ├── module_31_dora_lora_plus/        # dora_adapter.py
+│   └── module_32_statistical_watermarking/ # kgw_watermark.py
 └── tests/                               # 100% CPU-verifiable unit, HTTP & mathematical property test suite
 ```
 
@@ -175,5 +182,11 @@ For linear weight matrix $W \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}
 - **MLA Weight-Absorbed Equivalence (`module_27_mla_latent_attention`):** Absorbing $\mathbf{W}_{UK, i}$ into query space and $\mathbf{W}_{UV, i}$ into output space guarantees $\|\mathbf{y}_{\text{standard}} - \mathbf{y}_{\text{absorbed}}\|_\infty < 10^{-5}$ while caching only $(d_c + d_r)$ elements per token.
 - **BLT Partition Completeness (`module_28_byte_latent_patching`):** Dynamic entropy-segmented patches $\mathcal{P}_1, \dots, \mathcal{P}_P$ form an exact contiguous partition of the byte sequence ($\bigoplus_{k=1}^P \mathcal{P}_k = \mathbf{b}_{1:L}$).
 - **NPO Asymptotic Gradient Stopping (`module_29_machine_unlearning`):** As $\log \pi_\theta(y_f \mid x_f) - \log \pi_{\text{ref}}(y_f \mid x_f) \to -\infty$, the NPO forget gradient weight $\sigma(\beta \Delta \log p) \to 0$.
+
+### 3.11 Differential Attention Cancellation, DoRA Magnitude-Direction Equivalence & KGW Watermark Z-Score (`module_30` – `module_32`)
+- **DiffAttn Common-Mode Subtraction (`module_30_differential_attention`):** $\mathbf{A}_{\text{diff}} = \text{softmax}(Q_1 K_1^\top / \sqrt{d_h}) - \lambda\,\text{softmax}(Q_2 K_2^\top / \sqrt{d_h})$ annihilates identical common-mode noise patterns across $(Q_1, K_1)$ and $(Q_2, K_2)$ when $\lambda = 1$.
+- **DoRA Zero-Init Identity & Exact Merge (`module_31_dora_lora_plus`):** At $\mathbf{B} = \mathbf{0}$ and $\mathbf{m} = \|\mathbf{W}_0\|_{\text{row}}$, $\mathbf{W}_{\text{DoRA}} \equiv \mathbf{W}_0$; after adaptation, folding $\mathbf{W}_{\text{DoRA}}$ into `nn.Linear` preserves forward outputs to $< 10^{-5}$.
+- **KGW Binomial $z$-Score Concentration (`module_32_statistical_watermarking`):** Under $H_0$ (unwatermarked text), $z = (|S|_G - \gamma T) / \sqrt{T\gamma(1-\gamma)} \sim \mathcal{N}(0, 1)$, whereas watermarked sequences ($\delta > 0$) shift $\mathbb{E}[|S|_G / T] > \gamma$ with $z \propto \sqrt{T}$.
+
 
 

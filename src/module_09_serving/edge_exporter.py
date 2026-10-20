@@ -24,6 +24,7 @@ import logging
 from pathlib import Path
 import sys
 from typing import Any, Dict
+import warnings
 
 import torch
 import torch.nn as nn
@@ -235,7 +236,8 @@ def export_pytorch_module_to_edge(
     out_path.mkdir(parents=True, exist_ok=True)
 
     model.eval()
-    with torch.no_grad():
+    with torch.no_grad(), warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
         eager_out = model(sample_input)
         traced_module = torch.jit.trace(model, sample_input)
         traced_file = out_path / f"{model_name}.pt"

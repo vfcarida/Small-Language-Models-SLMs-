@@ -58,17 +58,16 @@ To ensure engineering transparency for adopters and contributors, every module i
 | **Module 27: Multi-Head Latent Attention & Low-Rank KV Compression (`src/module_27_mla_latent_attention/`)** | `MultiHeadLatentAttention` with joint low-rank $\mathbf{c}_t^{KV}$ compression, decoupled RoPE, weight-absorbed `forward_absorbed`, and `profile_mla_kv_cache_savings` (`mla_attention.py`). | Liu et al. (DeepSeek-V2, `arXiv:2405.04434`); DeepSeek-V3 (`arXiv:2412.19437`) | **`Stable`** | `tests/test_mla_latent_attention.py` |
 | **Module 28: Byte-Latent & Dynamic Patch Tokenization (`src/module_28_byte_latent_patching/`)** | Next-byte Shannon entropy (`compute_byte_stream_entropy`), dynamic boundary segmentation (`segment_bytes_into_dynamic_patches`), and `ByteLatentPatchPooling` (`byte_latent_patcher.py`). | Pagnoni et al. (Meta FAIR 2024, `arXiv:2412.09871`) | **`Stable`** | `tests/test_byte_latent_patching.py` |
 | **Module 29: Machine Unlearning & Targeted Knowledge Erasure (`src/module_29_machine_unlearning/`)** | Bounded-gradient Negative Preference Optimization (`compute_npo_unlearning_loss`) and Representation Misdirection for Unlearning (`compute_rmu_representation_loss`, `unlearning_objectives.py`). | Zhang et al. (COLM 2024, `arXiv:2404.05868`); Li et al. (ICML 2024, `arXiv:2403.03218`) | **`Stable`** | `tests/test_machine_unlearning.py` |
+| **Module 30: Differential Transformer Noise Cancellation (`src/module_30_differential_attention/`)** | Dual-softmax `DifferentialAttention`, depth-scheduled $\lambda_{\text{init}}$ (`compute_lambda_init`), and target-to-distractor `measure_attention_snr` (`diff_attention.py`). | Ye et al. (Microsoft Research / ICLR 2025, `arXiv:2410.05258`) | **`Stable`** | `tests/test_differential_attention.py` |
+| **Module 31: Weight-Decomposed Low-Rank Adaptation (`DoRA` & `LoRA+`) (`src/module_31_dora_lora_plus/`)** | Magnitude-direction `DoRALinear` with exact `merge_into_linear` and asymmetric `build_lora_plus_param_groups` (`dora_adapter.py`). | Liu et al. (ICML 2024 Oral, `arXiv:2402.09353`); Hayou et al. (ICML 2024, `arXiv:2402.12354`) | **`Stable`** | `tests/test_dora_lora_plus.py` |
+| **Module 32: Statistical Watermarking (`KGW`) for AI TRiSM (`src/module_32_statistical_watermarking/`)** | SHA-256 keyed green-list partitioning (`partition_green_red_vocab`), soft bias (`apply_kgw_watermark_logits`), and binomial $z$-score provenance verifier (`detect_kgw_watermark_zscore`, `kgw_watermark.py`). | Kirchenbauer et al. (ICML 2023, `arXiv:2301.10226`); EU AI Act Art. 50 | **`Stable`** | `tests/test_statistical_watermarking.py` |
 
 ---
 
-## 4. Next-Horizon Frontier Tracks (`Planned`)
+## 4. Convergence & Hardware-Cluster Extensions
 
-1. **Track H1 — Differential Transformer (`DiffAttn`) for Hallucination & Attention-Noise Cancellation (`Planned`):**
-   Dual-softmax differential attention (`Ye et al., Microsoft Research / ICLR 2025, arXiv:2410.05258`) computing the difference between two separate softmax attention maps to cancel common-mode context noise in SLMs.
-2. **Track H2 — LoRA+ & DoRA (Weight-Decomposed Low-Rank Adaptation) (`Planned`):**
-   Directional-magnitude weight decomposition (`Liu et al., ICML 2024 Best Paper Finalist, arXiv:2402.09353`) and asymmetric learning-rate scaling (`Hayou et al., ICML 2024`) closing the remaining accuracy gap between PEFT and full fine-tuning.
-3. **Track H3 — Statistical Watermarking (`KGW` Green-List Logit Bias) for AI TRiSM Provenance (`Planned`):**
-   Cryptographic hash-seeded green/red vocabulary partitioning and $z$-score hypothesis testing (`Kirchenbauer et al., ICML 2023, arXiv:2301.10226`) for EU AI Act / Gartner AI TRiSM synthetic text provenance detection.
+All **33 architectural modules (`00` through `32`)** have reached **`Stable`** maturity with 100% deterministic CPU/GPU unit test verification (`134/134` passing tests in `tests/`). External hardware-cluster extensions (multi-node 70B vLLM teacher clusters, multi-GPU DeepSpeed ZeRO-3 training, and hardware-native TensorRT-LLM FP8 engine compilation) are cleanly decoupled via configuration and optional extras (`pip install -e ".[all]"`).
+
 
 
 

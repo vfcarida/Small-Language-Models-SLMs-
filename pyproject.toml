@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "slm-masterclass"
-version = "1.1.0"
+version = "2.0.0"
 description = "Production-grade reference toolkit and engineering playbook for training, distilling, pruning, quantizing, aligning, and routing Small Language Models (SLMs)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,7 +30,7 @@ keywords = [
     "hybrid-routing"
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -119,6 +119,9 @@ slm-sae = "src.module_26_sparse_autoencoders.topk_sae:main"
 slm-mla = "src.module_27_mla_latent_attention.mla_attention:main"
 slm-blt = "src.module_28_byte_latent_patching.byte_latent_patcher:main"
 slm-unlearn = "src.module_29_machine_unlearning.unlearning_objectives:main"
+slm-diff-attn = "src.module_30_differential_attention.diff_attention:main"
+slm-dora = "src.module_31_dora_lora_plus.dora_adapter:main"
+slm-watermark = "src.module_32_statistical_watermarking.kgw_watermark:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
